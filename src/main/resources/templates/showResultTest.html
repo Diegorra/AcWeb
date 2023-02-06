@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Show result of test</title>
+</head>
+<body>
+    <h1>Result of test:</h1>
+    <table>
+        <th:block th:each="i : ${resultT}">
+            <tr>
+                <th:block th:each="j : ${i}">
+                    <td th:text="${j}" th:style="${j} >= 0.5 ? 'background-color: green' : 'background-color: red'"></td>
+                </th:block>
+            </tr>
+        </th:block>
+    </table>
+</body>
+</html>
