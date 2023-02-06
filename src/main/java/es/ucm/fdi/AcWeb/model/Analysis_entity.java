@@ -25,8 +25,11 @@ public class Analysis_entity {
     @JoinColumn(name="analysis_id")
     private List<Submission_entity> subs = new ArrayList<>();
 
+    /*
     @OneToMany
     @JoinColumn(name="analysis_id")
     private HashSet<Test_entity> appliedTest = new HashSet<Test_entity>();
+     */
+
 
 }

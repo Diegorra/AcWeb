@@ -8,4 +8,6 @@ public class TestResult_entity {
 
     @Id
     private Long id;
+
+    //permite mapear el HasMap de submission
 }
