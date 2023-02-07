@@ -10,7 +10,7 @@
         <th:block th:each="i : ${resultT}">
             <tr>
                 <th:block th:each="j : ${i}">
-                    <td th:text="${j}" th:style="${j} >= 0.5 ? 'background-color: green' : 'background-color: red'"></td>
+                    <td th:text="${j}" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'"></td>
                 </th:block>
             </tr>
         </th:block>
