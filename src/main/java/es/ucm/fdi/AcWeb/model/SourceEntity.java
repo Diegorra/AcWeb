@@ -1,19 +1,20 @@
 package es.ucm.fdi.AcWeb.model;
 
-import jdk.jfr.Enabled;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @NoArgsConstructor
+@Data
 @Table(name = "Source")
-public class Source_entity {
+public class SourceEntity {
     @Id
     private Long id;
 
     @ManyToOne
-    private Submission_entity sub_id;
+    private SubmissionEntity sub;
 
     private String code;
     private String fileName;

@@ -1,6 +1,6 @@
 package es.ucm.fdi.AcWeb.model;
 
-import jdk.jfr.Enabled;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -10,22 +10,23 @@ import java.util.List;
 
 @Entity
 @NoArgsConstructor
+@Data
 @Table(name = "FileTreeNode")
-public class FileTreeNode_entity {
+public class FileTreeNodeEntity {
     @Id
     private Long id;
 
     @ManyToOne
-    private SourceSet_entity sourceSet_id;
+    private SourceSetEntity sources;
 
     private File f;
 
     private File original;
 
-    @OneToOne
-    private FileTreeNode_entity parent;
+    @ManyToOne
+    private FileTreeNodeEntity parent;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name="parent")
-    private List<FileTreeNode_entity> children = new ArrayList<>();
+    private List<FileTreeNodeEntity> children = new ArrayList<>();
 }

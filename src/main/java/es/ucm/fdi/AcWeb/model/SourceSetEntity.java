@@ -1,5 +1,6 @@
 package es.ucm.fdi.AcWeb.model;
 
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -8,14 +9,15 @@ import java.util.List;
 
 @Entity
 @NoArgsConstructor
+@Data
 @Table(name="SourceSet")
-public class SourceSet_entity {
+public class SourceSetEntity {
     @Id
     private Long id;
 
     @OneToOne
-    private Analysis_entity analysis_id;
+    private AnalysisEntity analysis;
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name="sourceSet_id")
-    private List<FileTreeNode_entity> sourceRoots = new ArrayList<>();
+    private List<FileTreeNodeEntity> sourceRoots = new ArrayList<>();
 }
