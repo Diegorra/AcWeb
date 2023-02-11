@@ -13,6 +13,8 @@ import java.util.List;
 @Table(name = "Submission")
 public class SubmissionEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
+    @SequenceGenerator(name = "gen", sequenceName = "gen")
     private Long id;
 
     @ManyToOne

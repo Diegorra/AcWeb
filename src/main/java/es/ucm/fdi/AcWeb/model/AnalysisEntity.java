@@ -1,7 +1,9 @@
 package es.ucm.fdi.AcWeb.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import java.util.List;
 public class AnalysisEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
+    @SequenceGenerator(name = "gen", sequenceName = "gen")
     private Long id;
 
     @OneToOne
@@ -25,9 +29,6 @@ public class AnalysisEntity {
     private List<SubmissionEntity> subs = new ArrayList<>();
 
 
-    /*
-    @OneToMany
-    @JoinColumn(name="analysis_id")
-    private List<TestEntity> appliedTest = new ArrayList<>();
-    */
+    @ElementCollection
+    private List<String> appliedTestKey;
 }

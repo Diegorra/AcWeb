@@ -13,11 +13,14 @@ import java.util.List;
 @Table(name="SourceSet")
 public class SourceSetEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
+    @SequenceGenerator(name = "gen", sequenceName = "gen")
     private Long id;
 
     @OneToOne
     private AnalysisEntity analysis;
     @OneToMany(cascade = CascadeType.REMOVE)
-    @JoinColumn(name="sourceSet_id")
+    @JoinColumn(name = "sourceSet_id")
     private List<FileTreeNodeEntity> sourceRoots = new ArrayList<>();
+
 }

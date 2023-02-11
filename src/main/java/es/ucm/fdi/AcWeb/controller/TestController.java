@@ -1,5 +1,9 @@
 package es.ucm.fdi.AcWeb.controller;
 
+import es.ucm.fdi.AcWeb.Mapper;
+import es.ucm.fdi.AcWeb.model.AnalysisEntity;
+import es.ucm.fdi.AcWeb.model.SubmissionEntity;
+import es.ucm.fdi.AcWeb.model.TestResultEntity;
 import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.Submission;
@@ -26,6 +30,7 @@ import java.util.ArrayList;
 public class TestController {
 
     Analysis ac = new Analysis();
+    Mapper map= new Mapper();
     @Autowired
     private EntityManager entityManager;
 
@@ -45,12 +50,15 @@ public class TestController {
         ac.applyTest(t);
 
         //Persistir
-        //entityManager.persist(ac);
+        AnalysisEntity analysis = map.getAnaysisEntity(ac);
+        entityManager.persist(analysis);
 
         //Enviar al modelo
-        ArrayList<Object> matrix = new ArrayList<Object>();
-        for(Submission sb : ac.getSubmissions()){
-            matrix.add(sb.getData(t.getTestKey()));
+        ArrayList<ArrayList<Float>> matrix = new ArrayList<>();
+        for(SubmissionEntity sb : analysis.getSubs()){
+            for(TestResultEntity rs : sb.getData()){
+                matrix.add((ArrayList<Float>) rs.getResult());
+            }
         }
         /**Prueba vista
         Double m[][] = new Double[50][50];

@@ -14,6 +14,8 @@ import java.util.List;
 public class TestResultEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
+    @SequenceGenerator(name = "gen", sequenceName = "gen")
     private Long id;
 
     @ManyToOne

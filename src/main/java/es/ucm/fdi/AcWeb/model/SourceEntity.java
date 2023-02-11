@@ -11,6 +11,8 @@ import javax.persistence.*;
 @Table(name = "Source")
 public class SourceEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
+    @SequenceGenerator(name = "gen", sequenceName = "gen")
     private Long id;
 
     @ManyToOne
@@ -18,4 +20,6 @@ public class SourceEntity {
 
     private String code;
     private String fileName;
+
+
 }
