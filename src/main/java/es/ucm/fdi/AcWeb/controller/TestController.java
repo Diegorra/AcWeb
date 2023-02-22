@@ -1,5 +1,7 @@
 package es.ucm.fdi.AcWeb.controller;
 
+import antlr.NameSpace;
+import es.ucm.fdi.AcWeb.FilesStorageService;
 import es.ucm.fdi.AcWeb.Mapper;
 import es.ucm.fdi.AcWeb.model.AnalysisEntity;
 import es.ucm.fdi.AcWeb.model.SubmissionEntity;
@@ -7,47 +9,117 @@ import es.ucm.fdi.AcWeb.model.TestResultEntity;
 import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.Submission;
+import es.ucm.fdi.ac.extract.FileTreeModel;
+import es.ucm.fdi.ac.extract.FileTreeNode;
 import es.ucm.fdi.ac.test.NCDTest;
 import es.ucm.fdi.ac.test.Test;
 import es.ucm.fdi.util.archive.ZipFormat;
+import org.apache.tomcat.util.file.ConfigurationSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
-import java.text.AttributedString;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipEntry;
+import java.util.TreeSet;
+import java.util.zip.ZipInputStream;
 
 @Controller
 @RequestMapping("test")
 public class TestController {
 
-    Analysis ac = new Analysis();
     Mapper map= new Mapper();
     @Autowired
     private EntityManager entityManager;
 
-    //En un futuro 2 funciones -> loadSources: carga ficheros y persiste info (POST)
-    //                         -> runtTest: crea y corre el test y muestra el resultado (GET)
-    @GetMapping("/{nameDir}")
-    //http://localhost:8080/test/sample_aa
-    public String loadSources_runTest(@PathVariable String nameDir, Model model) throws IOException {
-        /** CARGAMOS LOS SOURCES QUE SE VAN A USAR PARA EL ANÁLISIS **/
-        File file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + nameDir);
-        SourceSet sourceset = new SourceSet(file);
-        ac.loadSources(sourceset);
+    @Autowired
+    private FilesStorageService storageService;
 
-        /** CREAMOS Y CORREMOS EL TEST **/
+
+    /** Función auxiliar que descomprime el fichero de entrada en ./uploads **/
+    public void unzip(MultipartFile file) throws IOException {
+        ZipInputStream inputStream = new ZipInputStream(file.getInputStream());
+        Path path = Paths.get("./uploads/");
+        for (ZipEntry entry; (entry = inputStream.getNextEntry()) != null; ) {
+            Path resolvedPath = path.resolve(entry.getName());
+            if (!entry.isDirectory()) {
+                Files.createDirectories(resolvedPath.getParent());
+                Files.copy(inputStream, resolvedPath);
+            } else {
+                Files.createDirectories(resolvedPath);
+            }
+        }
+    }
+
+    @PostMapping("/sources")
+    //http://localhost:8080/test/sample_aa
+    public String loadSources_runTest(@RequestParam("file") MultipartFile rootFile, Model model) throws IOException {
+        /** Save file in local data **/
+        unzip(rootFile);
+        String name = rootFile.getOriginalFilename().replace(".zip", "");
+        File file = ResourceUtils.getFile("/uploads/" + name);
+
+        Collection<String> dir = Arrays.asList(file.list());
+
+
+        /** Load Sources **/
+        FileTreeModel ftm = new FileTreeModel();
+        for(String dirName : dir){
+            File root = new File("./uploads/" + name + "/" + dirName);
+            if(root == null){
+                throw new IOException("No such file: " + dirName);
+            }
+            if(!root.isDirectory()){
+                throw new IOException("Not a directory: " + dirName);
+            }
+
+            for(File f : root.listFiles()){
+                ftm.addSource(f);
+            }
+        }
+        Analysis ac = new Analysis();
+        SourceSet ss = new SourceSet((FileTreeNode) ftm.getRoot());
+        ac.loadSources(ss);
+
+        /** Create and run Test **/
         Test t =  new NCDTest(new ZipFormat());
         ac.prepareTest(t);
         ac.applyTest(t);
+
+        /**  Persistance **/
+        //TODO
+
+        /** Report results and send back to model **/
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /** CARGAMOS LOS SOURCES QUE SE VAN A USAR PARA EL ANÁLISIS **/
+        /**File filen = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + nameDir);
+
 
         //Persistir
         AnalysisEntity analysis = map.getAnaysisEntity(ac);
@@ -60,7 +132,7 @@ public class TestController {
                 matrix.add((ArrayList<Float>) rs.getResult());
             }
         }
-        /**Prueba vista
+        Prueba vista**/
         Double m[][] = new Double[50][50];
         double k = 0.1;
         for(int i=0; i < 50; i++){
@@ -69,9 +141,9 @@ public class TestController {
             }
         }
         model.addAttribute("resultT", m);
-        **/
+        //**/
 
-        model.addAttribute("resultT", matrix);
+        //model.addAttribute("resultT", matrix);
         return "showResultTest";
     }
 

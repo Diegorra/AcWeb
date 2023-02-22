@@ -7,6 +7,14 @@
 <body>
 <h1>Landing Page here you can select test to run, load sources and launch test</h1>
 
+<form method="POST" enctype="multipart/form-data" th:action="@{/test/sources}">
+    <table>
+        <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
+        <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+    </table>
+</form>
+
+
 <a th:href="@{/test/sample_aa}">Run Test</a>
 </body>
 </html>
