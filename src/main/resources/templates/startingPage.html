@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Starting Page</title>
+</head>
+<body>
+    <div>
+        <h1>Select you analysis</h1>
+        <a th:href="@{/analysis}">New Analysis</a>
+    </div>
+    <div>
+        <th:block th:if="${load}">
+            <h5>Open recents:</h5>
+            <ul th:each="i : ${previousAnalysis}">
+                <li th:text="${i.getName()}"><a th:ref="@{'/analysis/' + ${i.getId()} + '/'}"></a></li>
+            </ul>
+        </th:block>
+    </div>
+</body>
+</html>

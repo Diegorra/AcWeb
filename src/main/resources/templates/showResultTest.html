@@ -7,7 +7,7 @@
 <body>
     <h1>Result of test:</h1>
     <table>
-        <th:block th:each="i : ${resultT}">
+        <th:block th:each="i : ${result}">
             <tr>
                 <th:block th:each="j : ${i}">
                     <td th:text="${j}" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'"></td>

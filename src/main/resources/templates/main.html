@@ -6,15 +6,41 @@
 </head>
 <body>
 <h1>Landing Page here you can select test to run, load sources and launch test</h1>
+<div th:if="${analysis.getSubs().size() == 0}">
+    <form method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/sources'}">
+        <table>
+            <tr><td>File to upload:</td><td><input type="file" name="file" id="file"/></td></tr>
+            <tr><td></td><td><button type="submit" value="Upload" id="uploadbutton" onclick="sendSources()">Upload sources</button></td></tr>
+        </table>
+    </form>
+</div>
+<div th:unless="${analysis.getSubs().size() == 0}">
+    <h2>Ya has subido el source set, puedes correr el test (en un futuro mostramos info de directorio):</h2>
+    <a th:href="@{'/analysis/' + ${analysis.getId()} + '/test'}">Run Test</a>
+</div>
 
-<form method="POST" enctype="multipart/form-data" th:action="@{/test/sources}">
-    <table>
-        <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
-        <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
-    </table>
-</form>
 
 
-<a th:href="@{/test/sample_aa}">Run Test</a>
+<script>
+    function sendSources() {
+        let source = document.getElementById("file").files[0];
+        let formData = new FormData();
+
+        formData.append("file", source);
+        let url = document.querySelector("#uploadbutton").parentNode.parentNode.parentNode.parentNode.action;
+        fetch(url, {method: "POST", body: formData}).then(response => {
+            const r = response;
+            if (r.ok) {
+                return r.json().then(json => Promise.resolve(json));
+            } else {
+                return r.text().then(text => Promise.reject({
+                    status: r.status,
+                    text
+                }));
+            }
+        });
+
+    }
+</script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-package es.ucm.fdi.AcWeb;
+package es.ucm.fdi.acweb;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

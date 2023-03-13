@@ -1,9 +1,9 @@
-package es.ucm.fdi.AcWeb.model;
+package es.ucm.fdi.acweb.model;
 
 
 
 //Clase que mapea un test, no es persistida en BD
-public class TestEntity {
+public class TestWeb {
 
     private String testKey;
 

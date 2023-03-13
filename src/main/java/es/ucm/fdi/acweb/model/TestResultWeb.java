@@ -1,17 +1,19 @@
-package es.ucm.fdi.AcWeb.model;
+package es.ucm.fdi.acweb.model;
 
+import es.ucm.fdi.ac.Analysis;
+import es.ucm.fdi.ac.Submission;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @Data
-@Table(name = "TestResultEntity")
-public class TestResultEntity {
+public class TestResultWeb {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
@@ -19,12 +21,15 @@ public class TestResultEntity {
     private Long id;
 
     @ManyToOne
-    private SubmissionEntity sub;
+    private SubmissionWeb sub;
 
-    private String key; // identificador del test al que hace referencia
+    private String testKey; // identificador del test al que hace referencia
 
     @ElementCollection
     private List<Float> result = new ArrayList<>();
 
-
+    public TestResultWeb(String key, Object data) {
+        this.testKey = key;
+        this.result = (List<Float>) data;
+    }
 }
