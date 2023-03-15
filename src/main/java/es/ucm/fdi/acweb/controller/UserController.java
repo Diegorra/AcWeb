@@ -18,17 +18,21 @@ import java.util.List;
 @Controller
 public class UserController {
 
+    @Autowired
+    private EntityManager entityManager;
     private static final Logger log = LogManager.getLogger(UserController.class);
     @GetMapping
+    @Transactional
     public String startingPage(Model model, HttpSession session){
         User requester = (User)session.getAttribute("u");
+        requester = entityManager.find(requester.getClass(), requester.getId());
         boolean load = false;
-        /*if(!requester.getAnalysisWebs().isEmpty()) {
-            List<AnalysisWeb> previousAnalysis = requester.getAnalysisWebs();
+        if(!requester.getAnalysesWeb().isEmpty()) {
+            List<AnalysisWeb> previousAnalysis = requester.getAnalysesWeb();
             model.addAttribute("previousAnalysis", previousAnalysis);
             log.info("Loading analysis from {}", requester.getUsername());
             load = true;
-        }*/
+        }
         model.addAttribute("load", load);
         return "startingPage";
     }

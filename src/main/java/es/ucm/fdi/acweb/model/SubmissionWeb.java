@@ -10,6 +10,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static es.ucm.fdi.acweb.model.SourceWeb.sourceFromAc;
+import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
+
 @Entity
 @NoArgsConstructor
 @Data
@@ -23,6 +26,7 @@ public class SubmissionWeb {
     private AnalysisWeb analysis;
 
     private String originalPath;
+    private String id_authors;
     private Integer internalId;
 
     private String hash;
@@ -37,38 +41,50 @@ public class SubmissionWeb {
     @JoinColumn(name = "sub_id")
     private List<TestResultWeb> data = new ArrayList<>();
 
-    public Submission castToAc2(){
-        Submission sub = new Submission(this.hash, this.originalPath, this.internalId);
+    /*public Submission submissionToAc(){
+        Submission sub = new Submission(this.id_authors, this.originalPath, this.internalId);
         //hasUpToDate
 
-        for(SourceWeb s : sourceRoots){
+        for(SourceWeb s : this.getSourceRoots()){
             sub.addSource(new File(s.getFileName())); //coge file en base al path que almacena el FileName?
         }
 
-        for(TestResultWeb i : data){
+        for(TestResultWeb i : this.getData()){
             sub.putData(i.getTestKey(), i.getResult());
         }
         return sub;
     }
 
-    public void castToAcWeb(Submission submission){
-        this.originalPath = submission.getOriginalPath();
-        this.internalId = submission.getInternalId();
-        this.hash = submission.getHash();
+    public static SubmissionWeb submissionFromAc(Submission submission, AnalysisWeb analysis){
+        SubmissionWeb submissionWeb = new SubmissionWeb();
+
+        submissionWeb.setAnalysis(analysis);
+        submissionWeb.setOriginalPath(submission.getOriginalPath());
+        submissionWeb.setId_authors(submission.getId());
+        submissionWeb.setInternalId(submission.getInternalId());
+        submissionWeb.setHash(submission.getHash());
         //this.hashUpToDate = ???
 
         //Persistimos los sourceRoots
-        this.sourceRoots.clear();
         for(Submission.Source i : submission.getSources()){
-            SourceWeb s = new SourceWeb();
-            s.castToAcWeb(i);
-            this.sourceRoots.add(s);
+            submissionWeb.getSourceRoots().add(sourceFromAc(i, submissionWeb));
         }
 
+
+        return submissionWeb;
+    }*/
+
+    public void fromAc(Submission submission, AnalysisWeb analysis, List<SourceWeb> sourceRoots){
+        this.setAnalysis(analysis);
+        this.setOriginalPath(submission.getOriginalPath());
+        this.setId_authors(submission.getId());
+        this.setInternalId(submission.getInternalId());
+        this.setHash(submission.getHash());
+        this.setSourceRoots(sourceRoots);
     }
 
     public void persistData(String key, Submission sub){
-        this.data.add(new TestResultWeb(key, sub.getData(key)));
+        this.data.add(testResultFromAc(key, sub.getData(key), this));
     }
 
 }

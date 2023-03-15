@@ -28,8 +28,12 @@ public class TestResultWeb {
     @ElementCollection
     private List<Float> result = new ArrayList<>();
 
-    public TestResultWeb(String key, Object data) {
-        this.testKey = key;
-        this.result = (List<Float>) data;
+    public static TestResultWeb testResultFromAc(String key, Object data, SubmissionWeb sub) {
+        TestResultWeb testResultWeb = new TestResultWeb();
+        testResultWeb.setSub(sub);
+        testResultWeb.setTestKey(key);
+        testResultWeb.setResult((List<Float>) data);
+
+        return testResultWeb;
     }
 }

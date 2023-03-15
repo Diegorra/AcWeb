@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static es.ucm.fdi.acweb.model.FileTreeNodeWeb.ftnFromAc;
+
 @Entity
 @NoArgsConstructor
 @Data
@@ -24,12 +26,23 @@ public class SourceSetWeb {
     @OneToOne
     private FileTreeNodeWeb sourceRoots;
 
-    public SourceSet castToAc2() throws IOException {
-        return new SourceSet(this.sourceRoots.castToAc2());
+    public SourceSet sourceSetToAc() throws IOException {
+        return new SourceSet(this.sourceRoots.ftnToAc());
     }
 
-    public void castToAcWeb(SourceSet sourceSet){
-        this.sourceRoots.castToAcWeb(sourceSet.getFilteredTree());
-    }
+    /*public static SourceSetWeb sourceSetFromAc(SourceSet sourceSet, AnalysisWeb analysis){
+        SourceSetWeb sourceSetWeb = new SourceSetWeb();
 
+        sourceSetWeb.setAnalysis(analysis);
+        sourceSetWeb.setSourceRoots(ftnFromAc(sourceSet.getFilteredTree(), sourceSetWeb, null));
+
+        return sourceSetWeb;
+    }*/
+
+    public void fromAc(FileTreeNodeWeb ftnw, AnalysisWeb analysis){
+
+        this.setAnalysis(analysis);
+        this.setSourceRoots(ftnw);
+
+    }
 }

@@ -30,25 +30,27 @@ public class FileTreeNodeWeb {
     @ManyToOne
     private FileTreeNodeWeb parent;
 
-    @OneToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(cascade=CascadeType.ALL)
     @JoinColumn(name="parent_id")
     private List<FileTreeNodeWeb> children = new ArrayList<>();
 
-    public FileTreeNode castToAc2(){
-        return new FileTreeNode(new File(this.path), this.parent.castToAc2());
+    public FileTreeNode ftnToAc(){
+        return new FileTreeNode(new File(this.path), this.parent.ftnToAc());
     }
 
-    public void castToAcWeb(FileTreeNode fileTreeNode){
-        this.path = fileTreeNode.getPath();
-        //this.parent = fileTreeNode.getParent(); OJO ----> TIPO TreeNode
+    public static FileTreeNodeWeb ftnFromAc(FileTreeNode fileTreeNode, SourceSetWeb sourceSetWeb, FileTreeNodeWeb parent){
+        FileTreeNodeWeb fileTreeNodeWeb = new FileTreeNodeWeb();
 
         //Persistimos los childen
-        this.children.clear();
         for(FileTreeNode i : fileTreeNode.getChildren()){
-            FileTreeNodeWeb n = new FileTreeNodeWeb();
-            n.castToAcWeb(i);
-            this.children.add(n);
+           fileTreeNodeWeb.getChildren().add(ftnFromAc(i, sourceSetWeb, fileTreeNodeWeb));
         }
+        //Persistimos otros valores
+        fileTreeNodeWeb.setPath(fileTreeNode.getPath());
+        fileTreeNodeWeb.setSs(sourceSetWeb);
+        fileTreeNodeWeb.setParent(parent);
+
+        return fileTreeNodeWeb;
     }
 
 }

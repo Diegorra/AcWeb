@@ -5,47 +5,55 @@ import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.Submission;
 import es.ucm.fdi.ac.test.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.util.*;
 
+import static es.ucm.fdi.acweb.model.FileTreeNodeWeb.ftnFromAc;
+import static es.ucm.fdi.acweb.model.SourceWeb.sourceFromAc;
+
+@Component
 public class Mapper {
 
 
-    public AnalysisWeb getAnaysisEntity(Analysis ac){
-        AnalysisWeb analysis = new AnalysisWeb();
-
-        //analysis.setSourceSet(getSourceSetEntity(, analysis));
-        //analysis.setSubs(getSubmissionsEntity(ac.getSubmissions()/*, analysis*/));
-        //analysis.setAppliedTestKey(getAppliedTest(ac.getAppliedTests()));
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
-        return analysis;
+    @Transactional
+    public SourceSetWeb getSourceSetWeb(SourceSet set, AnalysisWeb a){
+        SourceSetWeb sourceSetWeb = new SourceSetWeb();
+
+        FileTreeNodeWeb ftnw = ftnFromAc(set.getFilteredTree(), sourceSetWeb, null);
+        entityManager.persist(ftnw);
+
+        sourceSetWeb.fromAc(ftnw, a);
+        entityManager.persist(sourceSetWeb);
+        return sourceSetWeb;
     }
 
-    public SourceSetWeb getSourceSetEntity(SourceSet set, AnalysisWeb a){
-        SourceSetWeb sources = new SourceSetWeb();
-        sources.setAnalysis(a);
-        //sources.setSourceRoots();
-
-        return sources;
-    }
-
-    public ArrayList<SubmissionWeb> getSubmissionsEntity(Submission[] sub/*, AnalysisEntity a*/){
-        ArrayList<SubmissionWeb> subs = new ArrayList<>();
-        for(Submission i : sub){
-
-            SubmissionWeb s = new SubmissionWeb();
-            //s.setAnalysis(a);
-            s.setHash(i.getHash());
-            s.setInternalId(i.getInternalId());
-            s.setOriginalPath(i.getOriginalPath());
-            s.setHashUpToDate(false);
-            s.setSourceRoots(getSourceEntity(i.getSources()/*, s*/));
-            //s.setData(getTestResult(i, a));
-
-            subs.add(new SubmissionWeb());
+    @Transactional
+    public ArrayList<SubmissionWeb> getSubmissions(Analysis ac, AnalysisWeb analysis){
+        ArrayList<SubmissionWeb> submissionWebs = new ArrayList<>();
+        ArrayList<SourceWeb> roots = new ArrayList<>();
+        for(Submission sub : ac.getSubmissions()){
+            SubmissionWeb submissionWeb= new SubmissionWeb();
+            for(Submission.Source source : sub.getSources()){
+                SourceWeb sourceWeb = sourceFromAc(source, submissionWeb);
+                entityManager.persist(sourceWeb);
+                roots.add(sourceWeb);
+            }
+            submissionWeb.fromAc(sub, analysis, roots);
+            entityManager.persist(submissionWeb);
+            submissionWebs.add(submissionWeb);
         }
-        return subs;
+
+        return submissionWebs;
     }
 
     public ArrayList<String> getAppliedTest(HashSet<Test> test){
@@ -59,19 +67,6 @@ public class Mapper {
         return appliedT;
     }
 
-    public ArrayList<SourceWeb> getSourceEntity(ArrayList<Submission.Source> source/*, SubmissionEntity sub*/){
-        ArrayList<SourceWeb> sources = new ArrayList<>();
-        for(Submission.Source i : source){
-            SourceWeb s = new SourceWeb();
-            //s.setSub(sub);
-            s.setCode(i.getCode());
-            s.setFileName(i.getFileName());
-
-            sources.add(s);
-
-        }
-        return sources;
-    }
     /*
     public ArrayList<TestResultWeb> getTestResult(Submission s, AnalysisWeb a){
         ArrayList<TestResultWeb> result = new ArrayList<>();

@@ -42,7 +42,7 @@ public class User implements Transferable<User.Transfer> {
 
     @OneToMany(/*fetch=FetchType.EAGER, */cascade = CascadeType.REMOVE)
     @JoinColumn(name="owner_id")
-    private List<AnalysisWeb> analysisWebs = new ArrayList<>();
+    private List<AnalysisWeb> analysesWeb = new ArrayList<>();
 
     /**
      * Checks whether this user has a given role.

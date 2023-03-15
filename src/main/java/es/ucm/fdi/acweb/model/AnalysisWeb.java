@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @NoArgsConstructor
 @Data
@@ -37,26 +38,44 @@ public class AnalysisWeb {
     private List<String> appliedTestKey;
 
 
-    public Analysis castToAc2() throws IOException {
+    public Analysis analysisToAc() throws IOException {
         Analysis ac = new Analysis();
-        ac.loadSources(this.sourceSet.castToAc2()); //esto ya inicializa las submission
+        ac.loadSources(this.sourceSet.sourceSetToAc()); //esto ya inicializa las submissions
         return ac;
     }
 
-    public void castToAcWeb(Analysis ac){
-        //this.sourceSet.castToAcWeb(ac); -> No puedo obtener el sourceSet de un ac
+    /*public void analysisFromAc(Analysis ac, User owner, SourceSetWeb sourceSetWeb, String name){
 
-        subs.clear(); // eliminamos antiguos para no duplicar valores
+        this.setOwner(owner);
+        this.setName(name);
+        this.setSourceSet(sourceSetWeb);
+
+        this.getSubs().clear();
         for(Submission sub : ac.getSubmissions()){
-            SubmissionWeb submissionWeb = new SubmissionWeb();
-            submissionWeb.castToAcWeb(sub);
+            SubmissionWeb subWeb = submissionFromAc(sub, this);
+            this.getSubs().add(subWeb);
+        }
 
-            for(String testKey : appliedTestKey){//para cada submission chequeamos si se ha aplicado alguno de los test, en cuyo caso lo persistimos
+    }*/
+
+    public void fromAc(User owner, SourceSetWeb sourceSetWeb, ArrayList<SubmissionWeb> subs, String name){
+
+        this.setOwner(owner);
+        this.setName(name);
+        this.setSourceSet(sourceSetWeb);
+        this.setSubs(subs);
+
+    }
+
+    public void persistData(Analysis ac, ArrayList<String> keys){
+        for(Submission sub : ac.getSubmissions()){
+            SubmissionWeb subWeb = this.getSubs().get(sub.getInternalId());
+            for(String testKey : keys){//para cada submission chequeamos si se ha aplicado alguno de los test, en cuyo caso lo persistimos
                 if(ac.hasResultsForKey(testKey)){
-                    submissionWeb.persistData(testKey, sub);
+                    subWeb.persistData(testKey, sub);
                 }
             }
         }
-
     }
+
 }

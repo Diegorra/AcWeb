@@ -2,7 +2,7 @@ package es.ucm.fdi.acweb.controller;
 
 import es.ucm.fdi.acweb.LocalData;
 import es.ucm.fdi.acweb.Mapper;
-import es.ucm.fdi.acweb.model.AnalysisWeb;
+import es.ucm.fdi.acweb.model.*;
 import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.Submission;
@@ -12,7 +12,6 @@ import es.ucm.fdi.ac.parser.AntlrTokenizerFactory;
 import es.ucm.fdi.ac.test.NCDTest;
 import es.ucm.fdi.ac.test.Test;
 import es.ucm.fdi.ac.test.TokenizingTest;
-import es.ucm.fdi.acweb.model.User;
 import es.ucm.fdi.util.archive.ZipFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+
 @Controller
 @RequestMapping("analysis")
 public class AnalysisController {
@@ -47,7 +47,11 @@ public class AnalysisController {
 
     private Analysis ac; // de forma temporal hasta tener persistencia
 
+    @Autowired
+    private Mapper map;
+
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
+
 
     /** Función auxiliar que descomprime el fichero de entrada en ./data **/
     public void unzip(MultipartFile file, Path targetPath) throws IOException {
@@ -73,7 +77,7 @@ public class AnalysisController {
     @PostMapping("/{id}/sources")
     @Transactional
     //http://localhost:8080/sources
-    public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model) throws IOException {
+    public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model, HttpSession session) throws IOException {
         File targetDir = localData.getFolder("analysis/" + id);
         unzip(rootFile, targetDir.toPath());
 
@@ -85,30 +89,39 @@ public class AnalysisController {
         /** Load Sources **/
         FileTreeModel ftm = new FileTreeModel();
         for (File root : targetDir.listFiles()) {
-            //log.info("Adding root for {}: {}", targetDir, root.getAbsolutePath());
+            log.info("Adding root for {}: {}", targetDir, root.getAbsolutePath());
             ftm.addSource(root);
         }
 
+
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
 
-        ac = new Analysis(); //Analysis ac = analysis.castToAc2();
+        //Cargamos sources en ac
+        ac = new Analysis();
         SourceSet ss = new SourceSet((FileTreeNode) ftm.getRoot());
         ac.loadSources(ss);
 
+        //Persistimos resultado en web
+        User requester = (User)session.getAttribute("u");
+        SourceSetWeb ssw = map.getSourceSetWeb(ss, analysis);
+        ArrayList<SubmissionWeb> submissionWebs = map.getSubmissions(ac, analysis);
 
-        //Convertimos con mapper ac a AnalysisEntity
-        //analysis.castToAcWeb(ac);
-        //entityManager.persist(analysis);
+        //SourceSetWeb ssw = sourceSetFromAc(ss, analysis);
+        //analysis.analysisFromAc(ac, entityManager.find(User.class, requester.getId()), ssw, rootFile.getName());
+        analysis.fromAc(entityManager.find(User.class, requester.getId()), ssw, submissionWebs, rootFile.getOriginalFilename());
+        entityManager.persist(analysis);
+        log.info("Analysis {} persisted", rootFile.getOriginalFilename());
+
         model.addAttribute("analysis", analysis);
         return "main";
     }
 
     @GetMapping("/{id}/test")
     @Transactional
-    public String runTest(@PathVariable long id, Model model){
-        /** Load analysis from BD and convert to ac2 **/
+    public String runTest(@PathVariable long id, Model model) throws IOException {
+        /** Load analysis from BD and convert to ac and run test **/
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        //Analysis ac = analysis.castToAc2();
+        Analysis ac = analysis.analysisToAc();
 
         // prepare tokenization
         Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
@@ -124,7 +137,10 @@ public class AnalysisController {
         ac.applyTest(test);
 
         /**  Persistance **/
-        //analysis.castToAcWeb(ac);
+        ArrayList<String> keys = new ArrayList<>();
+        keys.add("Zip_ncd_sim");
+        analysis.persistData(ac, keys);
+        entityManager.persist(analysis);
 
         /** Report results and send back to model **/
         ArrayList<Object> matrix = new ArrayList<>();

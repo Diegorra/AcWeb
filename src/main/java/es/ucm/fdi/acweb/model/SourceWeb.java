@@ -22,13 +22,18 @@ public class SourceWeb {
     private String fileName;
 
 
-    public Submission.Source castToAc2(){
+    public Submission.Source sourceToAc(){
         return new Submission.Source(this.code, this.fileName);
     }
 
-    public void castToAcWeb(Submission.Source source){
-        this.code = source.getCode();
-        this.fileName = source.getFileName();
+    public static SourceWeb sourceFromAc(Submission.Source source, SubmissionWeb sub){
+        SourceWeb sourceWeb = new SourceWeb();
+
+        sourceWeb.setSub(sub);
+        //sourceWeb.setCode(source.getCode());
+        sourceWeb.setFileName(source.getFileName());
+
+        return sourceWeb;
     }
 
 }
