@@ -45,7 +45,7 @@ public class AnalysisController {
     @Autowired
     private LocalData localData;
 
-    private Analysis ac; // de forma temporal hasta tener persistencia
+    //private Analysis ac; // de forma temporal hasta tener persistencia
 
     @Autowired
     private Mapper map;
@@ -78,6 +78,8 @@ public class AnalysisController {
     @Transactional
     //http://localhost:8080/sources
     public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model, HttpSession session) throws IOException {
+        /** Build structure of SourceSet **/
+        //Unzip folder with sources
         File targetDir = localData.getFolder("analysis/" + id);
         unzip(rootFile, targetDir.toPath());
 
@@ -86,7 +88,7 @@ public class AnalysisController {
             targetDir = targetDir.listFiles()[0];
         }
 
-        /** Load Sources **/
+        // Load Sources
         FileTreeModel ftm = new FileTreeModel();
         for (File root : targetDir.listFiles()) {
             log.info("Adding root for {}: {}", targetDir, root.getAbsolutePath());
@@ -94,14 +96,13 @@ public class AnalysisController {
         }
 
 
-        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-
-        //Cargamos sources en ac
-        ac = new Analysis();
+        /** Initialise ac analysis **/
+        Analysis ac = new Analysis();
         SourceSet ss = new SourceSet((FileTreeNode) ftm.getRoot());
         ac.loadSources(ss);
 
-        //Persistimos resultado en web
+        /** Cast to web, persist the result **/
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
         User requester = (User)session.getAttribute("u");
         SourceSetWeb ssw = map.getSourceSetWeb(ss, analysis);
         ArrayList<SubmissionWeb> submissionWebs = map.getSubmissions(ac, analysis);
@@ -119,9 +120,10 @@ public class AnalysisController {
     @GetMapping("/{id}/test")
     @Transactional
     public String runTest(@PathVariable long id, Model model) throws IOException {
-        /** Load analysis from BD and convert to ac and run test **/
+        /** Load analysis from BD, convert it to ac and run test **/
+        //Load analysis from BD, cast it to ac
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        Analysis ac = analysis.analysisToAc();
+        Analysis ac = analysis.analysisToAc(localData.getFolder("analysis/" + id));
 
         // prepare tokenization
         Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
@@ -136,11 +138,12 @@ public class AnalysisController {
         ac.prepareTest(test);
         ac.applyTest(test);
 
-        /**  Persistance **/
+        /**  Persistence **/
         ArrayList<String> keys = new ArrayList<>();
         keys.add("Zip_ncd_sim");
-        analysis.persistData(ac, keys);
-        entityManager.persist(analysis);
+        map.persistData(analysis, ac, keys);
+        //analysis.persistData(ac, keys);
+        //entityManager.persist(analysis);
 
         /** Report results and send back to model **/
         ArrayList<Object> matrix = new ArrayList<>();
@@ -173,7 +176,6 @@ public class AnalysisController {
     @GetMapping
     @Transactional
     public String newAnalysis(Model model, HttpSession session) {
-        //Creamos nuevo análisis
         AnalysisWeb analysis = new AnalysisWeb();
         User requester = (User)session.getAttribute("u");
         analysis.setOwner(entityManager.find(User.class, requester.getId()));

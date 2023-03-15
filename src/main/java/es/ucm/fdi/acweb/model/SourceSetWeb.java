@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,8 @@ public class SourceSetWeb {
     @OneToOne
     private FileTreeNodeWeb sourceRoots;
 
-    public SourceSet sourceSetToAc() throws IOException {
-        return new SourceSet(this.sourceRoots.ftnToAc());
+    public SourceSet sourceSetToAc(File basePath) throws IOException {
+        return new SourceSet(this.sourceRoots.ftnToAc(basePath));
     }
 
     /*public static SourceSetWeb sourceSetFromAc(SourceSet sourceSet, AnalysisWeb analysis){

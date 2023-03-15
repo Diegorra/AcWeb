@@ -16,6 +16,7 @@ import java.util.*;
 
 import static es.ucm.fdi.acweb.model.FileTreeNodeWeb.ftnFromAc;
 import static es.ucm.fdi.acweb.model.SourceWeb.sourceFromAc;
+import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
 
 @Component
 public class Mapper {
@@ -54,6 +55,28 @@ public class Mapper {
         }
 
         return submissionWebs;
+    }
+
+    public void persistData(AnalysisWeb analysisWeb, Analysis ac, ArrayList<String> keys){
+        for(Submission sub : ac.getSubmissions()){
+            SubmissionWeb subWeb = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class).setParameter("id", sub.getInternalId()).getSingleResult();
+            subWeb.setData(getTestsResultWebForSub(ac, sub, subWeb, keys));
+            entityManager.merge(subWeb);
+        }
+        entityManager.merge(analysisWeb);
+    }
+
+    public ArrayList<TestResultWeb> getTestsResultWebForSub(Analysis ac, Submission sub, SubmissionWeb subWeb, ArrayList<String> keys){
+        ArrayList<TestResultWeb> testResultWebs = new ArrayList<>();
+        for(String testKey : keys){//para cada submission chequeamos si se ha aplicado alguno de los test, en cuyo caso lo persistimos
+            if(ac.hasResultsForKey(testKey)){
+                TestResultWeb testResultWeb = testResultFromAc(testKey, sub.getData(testKey), subWeb);
+                entityManager.persist(testResultWeb);
+                testResultWebs.add(testResultWeb);
+            }
+        }
+
+        return  testResultWebs;
     }
 
     public ArrayList<String> getAppliedTest(HashSet<Test> test){

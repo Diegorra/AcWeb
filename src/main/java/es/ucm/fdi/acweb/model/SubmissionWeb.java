@@ -16,6 +16,11 @@ import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
 @Entity
 @NoArgsConstructor
 @Data
+@NamedQueries({
+        @NamedQuery(name="SubmissionWeb.byInternalId",
+                query="SELECT s FROM SubmissionWeb s "
+                        + "WHERE s.internalId = : id"),
+})
 public class SubmissionWeb {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
@@ -27,6 +32,7 @@ public class SubmissionWeb {
 
     private String originalPath;
     private String id_authors;
+    @Column(unique = true)
     private Integer internalId;
 
     private String hash;
@@ -83,8 +89,9 @@ public class SubmissionWeb {
         this.setSourceRoots(sourceRoots);
     }
 
+    /*
     public void persistData(String key, Submission sub){
         this.data.add(testResultFromAc(key, sub.getData(key), this));
-    }
+    }*/
 
 }

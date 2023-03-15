@@ -1,6 +1,7 @@
 package es.ucm.fdi.acweb.model;
 
 import es.ucm.fdi.ac.SourceSet;
+import es.ucm.fdi.ac.extract.FileTreeModel;
 import es.ucm.fdi.ac.extract.FileTreeNode;
 import es.ucm.fdi.acweb.LocalData;
 import lombok.Data;
@@ -34,8 +35,18 @@ public class FileTreeNodeWeb {
     @JoinColumn(name="parent_id")
     private List<FileTreeNodeWeb> children = new ArrayList<>();
 
-    public FileTreeNode ftnToAc(){
-        return new FileTreeNode(new File(this.path), this.parent.ftnToAc());
+    public FileTreeNode ftnToAc(File basePath){
+        while (basePath.listFiles().length == 1) {
+            basePath = basePath.listFiles()[0];
+        }
+
+        // Load Sources
+        FileTreeModel ftm = new FileTreeModel();
+        for (File root : basePath.listFiles()) {
+            ftm.addSource(root);
+        }
+
+        return (FileTreeNode) ftm.getRoot();
     }
 
     public static FileTreeNodeWeb ftnFromAc(FileTreeNode fileTreeNode, SourceSetWeb sourceSetWeb, FileTreeNodeWeb parent){

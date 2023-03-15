@@ -1,14 +1,14 @@
 package es.ucm.fdi.acweb.model;
 
-import es.ucm.fdi.ac.Analysis;
-import es.ucm.fdi.ac.Submission;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.persistence.*;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
@@ -32,7 +32,7 @@ public class TestResultWeb {
         TestResultWeb testResultWeb = new TestResultWeb();
         testResultWeb.setSub(sub);
         testResultWeb.setTestKey(key);
-        testResultWeb.setResult((List<Float>) data);
+        testResultWeb.setResult(Arrays.asList(ArrayUtils.toObject((float[])data)));
 
         return testResultWeb;
     }

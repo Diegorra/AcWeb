@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +39,9 @@ public class AnalysisWeb {
     private List<String> appliedTestKey;
 
 
-    public Analysis analysisToAc() throws IOException {
+    public Analysis analysisToAc(File basePath) throws IOException {
         Analysis ac = new Analysis();
-        ac.loadSources(this.sourceSet.sourceSetToAc()); //esto ya inicializa las submissions
+        ac.loadSources(this.sourceSet.sourceSetToAc(basePath)); //esto ya inicializa las submissions
         return ac;
     }
 
@@ -67,7 +68,7 @@ public class AnalysisWeb {
 
     }
 
-    public void persistData(Analysis ac, ArrayList<String> keys){
+    /*public void persistData(Analysis ac, ArrayList<String> keys){
         for(Submission sub : ac.getSubmissions()){
             SubmissionWeb subWeb = this.getSubs().get(sub.getInternalId());
             for(String testKey : keys){//para cada submission chequeamos si se ha aplicado alguno de los test, en cuyo caso lo persistimos
@@ -76,6 +77,6 @@ public class AnalysisWeb {
                 }
             }
         }
-    }
+    }*/
 
 }
