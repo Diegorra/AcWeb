@@ -79,4 +79,8 @@ public class AnalysisWeb {
         }
     }*/
 
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
 }

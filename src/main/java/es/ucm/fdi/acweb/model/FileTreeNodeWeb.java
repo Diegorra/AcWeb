@@ -64,4 +64,9 @@ public class FileTreeNodeWeb {
         return fileTreeNodeWeb;
     }
 
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
+
 }

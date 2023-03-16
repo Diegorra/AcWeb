@@ -75,4 +75,8 @@ public class User implements Transferable<User.Transfer> {
         return hasRole(Role.ADMIN);
     }
 
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
 }

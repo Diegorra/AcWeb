@@ -46,4 +46,9 @@ public class SourceSetWeb {
         this.setSourceRoots(ftnw);
 
     }
+
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
 }

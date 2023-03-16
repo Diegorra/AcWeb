@@ -93,4 +93,8 @@ public class SubmissionWeb {
         this.data.add(testResultFromAc(key, sub.getData(key), this));
     }*/
 
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
 }

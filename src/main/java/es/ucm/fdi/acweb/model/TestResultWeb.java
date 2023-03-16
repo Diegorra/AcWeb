@@ -36,4 +36,9 @@ public class TestResultWeb {
 
         return testResultWeb;
     }
+
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
 }

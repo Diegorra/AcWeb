@@ -38,4 +38,9 @@ public class SourceWeb {
         return sourceWeb;
     }
 
+    @Override
+    public int hashCode() {
+        return Math.toIntExact(this.id);
+    }
+
 }
