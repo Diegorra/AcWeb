@@ -18,6 +18,7 @@ public class SourceWeb {
     @ManyToOne
     private SubmissionWeb sub;
 
+   @Lob
     private String code;
     private String fileName;
 
@@ -30,7 +31,8 @@ public class SourceWeb {
         SourceWeb sourceWeb = new SourceWeb();
 
         sourceWeb.setSub(sub);
-        //sourceWeb.setCode(source.getCode());
+        sourceWeb.setCode(source.getCode());
+
         sourceWeb.setFileName(source.getFileName());
 
         return sourceWeb;

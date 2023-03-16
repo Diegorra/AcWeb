@@ -59,7 +59,10 @@ public class Mapper {
 
     public void persistData(AnalysisWeb analysisWeb, Analysis ac, ArrayList<String> keys){
         for(Submission sub : ac.getSubmissions()){
-            SubmissionWeb subWeb = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class).setParameter("id", sub.getInternalId()).getSingleResult();
+            SubmissionWeb subWeb = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
+                    .setParameter("id", sub.getInternalId())
+                    .setParameter("analysisId", analysisWeb.getId())
+                    .getSingleResult();
             subWeb.setData(getTestsResultWebForSub(ac, sub, subWeb, keys));
             entityManager.merge(subWeb);
         }

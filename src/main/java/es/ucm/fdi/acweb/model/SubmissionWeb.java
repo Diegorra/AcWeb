@@ -19,7 +19,7 @@ import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
 @NamedQueries({
         @NamedQuery(name="SubmissionWeb.byInternalId",
                 query="SELECT s FROM SubmissionWeb s "
-                        + "WHERE s.internalId = : id"),
+                        + "WHERE s.internalId = : id AND s.analysis.id  = : analysisId"),
 })
 public class SubmissionWeb {
     @Id
@@ -32,7 +32,6 @@ public class SubmissionWeb {
 
     private String originalPath;
     private String id_authors;
-    @Column(unique = true)
     private Integer internalId;
 
     private String hash;

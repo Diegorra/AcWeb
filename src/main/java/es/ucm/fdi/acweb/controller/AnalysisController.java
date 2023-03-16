@@ -114,7 +114,7 @@ public class AnalysisController {
         log.info("Analysis {} persisted", rootFile.getOriginalFilename());
 
         model.addAttribute("analysis", analysis);
-        return "main";
+        return "redirect:/analysis/" + analysis.getId();
     }
 
     @GetMapping("/{id}/test")
