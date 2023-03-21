@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Starting Page</title>
+    <th:block th:replace="fragments/header :: header" />
 </head>
 <body>
     <div>
@@ -13,7 +14,7 @@
         <th:block th:if="${load}">
             <h5>Open recents:</h5>
             <ul th:each="i : ${previousAnalysis}">
-                <li th:text="${i.getName()}"><a th:ref="@{'/analysis/' + ${i.getId()} + '/'}"></a></li>
+                <li><a th:href="@{'/analysis/' + ${i.getId()} + '/'}" th:text="${i.getName()}"></a></li>
             </ul>
         </th:block>
     </div>
