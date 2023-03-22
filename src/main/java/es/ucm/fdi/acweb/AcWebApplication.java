@@ -1,4 +1,4 @@
-package es.ucm.fdi.AcWeb;
+package es.ucm.fdi.acweb;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

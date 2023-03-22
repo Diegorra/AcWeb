@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html  lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Main page</title>
+    <th:block th:replace="fragments/header :: header" />
+</head>
+<body>
+<th:block th:replace="fragments/nav :: nav"/>
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block bg-light sidebar collapse" >
+      <th:block th:if="${analysis.getSubs().size() == 0}">
+        <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/sources'}">
+          <!--<input type="file" id="my-file" onchange="sendSources()" hidden/>
+          <label for="my-file" class="labelForButton">Upload File</label>
+          <span id="file-chosen">No file chosen</span>-->
+
+          <input type="file" name="file" id="file"/><br>
+          <button class="btn btn-primary my-2" type="submit" value="Upload" id="uploadbutton" onclick="sendSources()">Upload sources</button>
+
+        </form>
+      </th:block>
+      <th:block th:unless="${analysis.getSubs().size() == 0}">
+        <div class="position-sticky pt-3 sidebar-sticky">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home align-text-bottom" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Sources subidos con éxito
+              </a>
+            </li>
+          </ul>
+
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+            <span>Run test</span>
+          </h6>
+          <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{'/analysis/' + ${analysis.getId()} + '/test'}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text align-text-bottom" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                NCD sim
+              </a>
+            </li>
+          </ul>
+        </div>
+      </th:block>
+    </nav>
+
+    <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2" th:text="'Result of test for ' + ${analysis.getName()}"></h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+          </div>
+        </div>
+      </div>
+
+      <!--<canvas class="my-4 w-100" width="926" height="390" style="display: block; width: 926px; height: 390px;">-->
+        <table th:if="${analysis.appliedTestKey.size() != 0}">
+          <th:block th:each="i : ${result}">
+            <tr>
+              <th:block th:each="j : ${i}">
+                <td th:text="${j}" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'"></td>
+              </th:block>
+            </tr>
+          </th:block>
+        </table>
+        <div th:unless="${analysis.appliedTestKey.size() != 0}">
+          <p>No result of test available</p>
+        </div>
+      <!--</canvas>->
+
+      <!--<h2>Section title</h2>
+      <div class="table-responsive">
+        <table class="table table-striped table-sm">
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Header</th>
+            <th scope="col">Header</th>
+            <th scope="col">Header</th>
+            <th scope="col">Header</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>1,001</td>
+            <td>random</td>
+            <td>data</td>
+            <td>placeholder</td>
+            <td>text</td>
+          </tr>
+          <tr>
+            <td>1,002</td>
+            <td>placeholder</td>
+            <td>irrelevant</td>
+            <td>visual</td>
+            <td>layout</td>
+          </tr>
+          <tr>
+            <td>1,003</td>
+            <td>data</td>
+            <td>rich</td>
+            <td>dashboard</td>
+            <td>tabular</td>
+          </tr>
+          <tr>
+            <td>1,003</td>
+            <td>information</td>
+            <td>placeholder</td>
+            <td>illustrative</td>
+            <td>data</td>
+          </tr>
+          <tr>
+            <td>1,004</td>
+            <td>text</td>
+            <td>random</td>
+            <td>layout</td>
+            <td>dashboard</td>
+          </tr>
+          <tr>
+            <td>1,005</td>
+            <td>dashboard</td>
+            <td>irrelevant</td>
+            <td>text</td>
+            <td>placeholder</td>
+          </tr>
+          <tr>
+            <td>1,006</td>
+            <td>dashboard</td>
+            <td>illustrative</td>
+            <td>rich</td>
+            <td>data</td>
+          </tr>
+          <tr>
+            <td>1,007</td>
+            <td>placeholder</td>
+            <td>tabular</td>
+            <td>information</td>
+            <td>irrelevant</td>
+          </tr>
+          <tr>
+            <td>1,008</td>
+            <td>random</td>
+            <td>data</td>
+            <td>placeholder</td>
+            <td>text</td>
+          </tr>
+          <tr>
+            <td>1,009</td>
+            <td>placeholder</td>
+            <td>irrelevant</td>
+            <td>visual</td>
+            <td>layout</td>
+          </tr>
+          <tr>
+            <td>1,010</td>
+            <td>data</td>
+            <td>rich</td>
+            <td>dashboard</td>
+            <td>tabular</td>
+          </tr>
+          <tr>
+            <td>1,011</td>
+            <td>information</td>
+            <td>placeholder</td>
+            <td>illustrative</td>
+            <td>data</td>
+          </tr>
+          <tr>
+            <td>1,012</td>
+            <td>text</td>
+            <td>placeholder</td>
+            <td>layout</td>
+            <td>dashboard</td>
+          </tr>
+          <tr>
+            <td>1,013</td>
+            <td>dashboard</td>
+            <td>irrelevant</td>
+            <td>text</td>
+            <td>visual</td>
+          </tr>
+          <tr>
+            <td>1,014</td>
+            <td>dashboard</td>
+            <td>illustrative</td>
+            <td>rich</td>
+            <td>data</td>
+          </tr>
+          <tr>
+            <td>1,015</td>
+            <td>random</td>
+            <td>tabular</td>
+            <td>information</td>
+            <td>text</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>-->
+    </main>
+  </div>
+</div>
+<!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
+
+<script>
+  function sendSources() {
+    let source = document.getElementById("file").files[0];
+    let formData = new FormData();
+
+    formData.append("file", source);
+    let form=document.forms['myForm'];
+    fetch(form.action, {method: "POST", body: formData}).then(response => {
+      const r = response;
+      if (r.ok) {
+        return r.json().then(json => Promise.resolve(json));
+      } else {
+        return r.text().then(text => Promise.reject({
+          status: r.status,
+          text
+        }));
+      }
+    });
+
+  }
+</script>
+<!--<script>
+  const actualBtn = document.getElementById('my-file');
+
+  const fileChosen = document.getElementById('file-chosen');
+
+  actualBtn.addEventListener('change', function(){
+    fileChosen.textContent = this.files[0].name
+    //sendSources();
+  })
+</script>-->
+</body>
+</html>

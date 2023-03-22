@@ -1,0 +1,17 @@
+.bg {
+    background-image:  linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(../images/bg.jpg);
+}
+
+.whiteBackground{
+    background-color: white;
+}
+
+.labelForButton {
+    background-color: blue;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+

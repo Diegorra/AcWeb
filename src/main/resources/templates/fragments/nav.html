@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body class="d-flex flex-column h-100">
+    <header th:fragment="nav" class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom whiteBackground">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+            <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+            <span class="fs-4">AcWeb</span>
+        </a>
+
+        <ul th:if="${session.u}" class="nav nav-pills">
+            <li class="nav-item"><a href="#" class="nav-link px-2 link-dark">About</a></li>
+            <li class="nav-item"><a class="nav-link px-2 link-dark" th:href="'/user/__${session.u.id}__/settings'">Settings</a></li>
+            <li class="nav-item"><a class="nav-link px-2 link-dark" href="#">Log out</a></li>
+        </ul>
+        <ul th:unless="${session.u}" class="nav nav-pills">
+            <li class="nav-item"><a href="#" class="nav-link px-2 link-dark" >About</a></li>
+            <li class="nav-item"><a class="nav-link px-2 link-dark" th:action="@{/login}" href="/login">Login</a></li>
+            <li class="nav-item"><a class="nav-link px-2 link-dark" href="#">Register</a></li>
+        </ul>
+    </header>
+</body>
+
+</html>
