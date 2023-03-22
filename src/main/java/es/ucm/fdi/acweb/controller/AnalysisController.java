@@ -163,9 +163,19 @@ public class AnalysisController {
          * }
          * }
          **/
+        /*int[][] matrix = new int[3][3];
 
+        int value = 1;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                matrix[i][j] = value;
+                value++;
+            }
+        }*/
+
+        model.addAttribute("analysis", analysis);
         model.addAttribute("result", matrix);
-        return "showResultTest";
+        return "mainView";
 
     }
 
@@ -179,11 +189,12 @@ public class AnalysisController {
         AnalysisWeb analysis = new AnalysisWeb();
         User requester = (User)session.getAttribute("u");
         analysis.setOwner(entityManager.find(User.class, requester.getId()));
+        analysis.setName("new_analysis");
         entityManager.persist(analysis);
         entityManager.flush();
 
         model.addAttribute("analysis", analysis);
-        return "main";
+        return "mainView";
     }
 
     @GetMapping("/{id}")
@@ -191,7 +202,7 @@ public class AnalysisController {
     public String loadAnalysis(@PathVariable long id, Model model){
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
         model.addAttribute("analysis", analysis);
-        return "main";
+        return "mainView";
     }
 
 }

@@ -36,7 +36,7 @@ public class AnalysisWeb {
     private List<SubmissionWeb> subs = new ArrayList<>();
 
     @ElementCollection
-    private List<String> appliedTestKey;
+    private List<String> appliedTestKey = new ArrayList<>();
 
 
     public Analysis analysisToAc(File basePath) throws IOException {

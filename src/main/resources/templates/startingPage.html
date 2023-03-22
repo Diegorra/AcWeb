@@ -6,17 +6,31 @@
     <th:block th:replace="fragments/header :: header" />
 </head>
 <body>
-    <div>
-        <h1>Select you analysis</h1>
-        <a th:href="@{/analysis}">New Analysis</a>
-    </div>
-    <div>
-        <th:block th:if="${load}">
-            <h5>Open recents:</h5>
-            <ul th:each="i : ${previousAnalysis}">
-                <li><a th:href="@{'/analysis/' + ${i.getId()} + '/'}" th:text="${i.getName()}"></a></li>
-            </ul>
-        </th:block>
-    </div>
+    <th:block th:replace="fragments/nav :: nav"/>
+    <main>
+        <section class="py-5 text-center container">
+            <div class="row py-lg-5">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <h1 class="fw-light">Select your analysis</h1>
+                    <p class="lead text-muted">Above you can launch a new analysis</p>
+                    <p>
+                        <a th:href="@{/analysis}" class="btn btn-primary my-2">New Analysis</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <div class="album py-5 bg-light" th:if="${load}">
+            <div class="container">
+                <p class="lead text-muted">Open recent: </p>
+                <div th:each="i : ${previousAnalysis}" class="list-group list-group-flush">
+                    <a th:href="@{'/analysis/' + ${i.getId()} + '/'}" th:text="${i.getName()}" class="list-group-item list-group-item-action">Previous</a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <th:block th:replace="fragments/footer.html :: footer"></th:block>
 </body>
 </html>

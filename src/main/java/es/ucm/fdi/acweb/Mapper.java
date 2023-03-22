@@ -66,6 +66,9 @@ public class Mapper {
             subWeb.setData(getTestsResultWebForSub(ac, sub, subWeb, keys));
             entityManager.merge(subWeb);
         }
+        for(String i : keys){
+            analysisWeb.getAppliedTestKey().add(i);
+        }
         entityManager.merge(analysisWeb);
     }
 
