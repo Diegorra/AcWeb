@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -117,52 +118,59 @@ public class AnalysisController {
         return "redirect:/analysis/" + analysis.getId();
     }
 
-    @GetMapping("/{id}/test")
+    @GetMapping("/{id}/{testKey}")
     @Transactional
-    public String runTest(@PathVariable long id, Model model) throws IOException {
+    public String runTest(@PathVariable long id, @PathVariable String testKey, Model model) throws IOException {
         /** Load analysis from BD, convert it to ac and run test **/
         //Load analysis from BD, cast it to ac
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        Analysis ac = analysis.analysisToAc(localData.getFolder("analysis/" + id));
 
-        // prepare tokenization
-        Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
-        Test test = new NCDTest(new ZipFormat());
+        if(!analysis.getAppliedTestKey().contains(testKey)){
+            Analysis ac = analysis.analysisToAc(localData.getFolder("analysis/" + id));
+
+            // prepare tokenization
+            Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
+            Test test = new NCDTest(new ZipFormat());
+            /*switch (testKey){
+                default:
+                    test = new NCDTest(new ZipFormat());
+
+            }*/
 
 
-        if (test instanceof TokenizingTest) {
-            ((TokenizingTest) test).setTokenizer(ac.chooseTokenizer());
+            if (test instanceof TokenizingTest) {
+                ((TokenizingTest) test).setTokenizer(ac.chooseTokenizer());
+            }
+
+            // Create and run Test
+            ac.prepareTest(test);
+            ac.applyTest(test);
+
+            /**  Persistence **/
+            ArrayList<String> keys = new ArrayList<>();
+            keys.add(testKey);
+            map.persistData(analysis, ac, keys);
+            //analysis.persistData(ac, keys);
+            //entityManager.persist(analysis);
         }
 
-        // Create and run Test
-        ac.prepareTest(test);
-        ac.applyTest(test);
 
-        /**  Persistence **/
-        ArrayList<String> keys = new ArrayList<>();
-        keys.add("Zip_ncd_sim");
-        map.persistData(analysis, ac, keys);
-        //analysis.persistData(ac, keys);
-        //entityManager.persist(analysis);
-
-        /** Report results and send back to model **/
+        /** Report results and send back to model
         ArrayList<Object> matrix = new ArrayList<>();
         for (Submission sb : ac.getSubmissions()) {
             Object o = sb.getData("Zip_ncd_sim");
             matrix.add(o);
-        }
+        }**/
 
-        /**
-         * Enviar al modelo
-         * //inicialmente resultados se cogeran de objeto submission a partir del
-         * AnalysisEntity persistido
-         * ArrayList<ArrayList<Float>> matrix = new ArrayList<>();
-         * for(SubmissionEntity sb : analysis.getSubs()){
-         * for(TestResultEntity rs : sb.getData()){
-         * matrix.add((ArrayList<Float>) rs.getResult());
-         * }
-         * }
-         **/
+
+         /** Enviar al modelo **/
+         ArrayList<List<Float>> matrix = new ArrayList<>();
+         for(SubmissionWeb sb : analysis.getSubs()){
+            for(TestResultWeb rs : sb.getData()){
+                matrix.add(rs.getResult());
+            }
+         }
+
         /*int[][] matrix = new int[3][3];
 
         int value = 1;
