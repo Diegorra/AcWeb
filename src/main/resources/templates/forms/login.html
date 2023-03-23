@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html class="h-100" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+  <meta charset="UTF-8">
   <title>Login</title>
   <th:block th:replace="fragments/header :: header" />
 </head>
@@ -51,39 +52,6 @@
     </div>
   </section>
 <!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
-<!--<div class="container"  style="display: flex; justify-content: center; position: fixed; left: 0; right:0; top: 10vh; bottom:0;">
-  <div class="card bg-light" style="border-radius: 15px; width:  fit-content; height:fit-content; padding: 1.8em;">
-    <article class="card-body mx-auto">
-      <h2 class="card-title mt-3 text-center">Please sign in</h2>
-      <hr/>
-      <form method="post" th:action="@{/login}" style="width: max(35%, 250px)">
-        <p th:if="${#request.getQueryString() == 'error'}" class="error">
-          Error en nombre de usuario o contraseña
-        </p>
-
-        <div class="mb-3">
-          <input type="text" id="username" name="username" class="form-control" placeholder="Username"
-                 required="required">
-        </div>
-
-        <p></p>
-
-        <div class="mb-3">
-          <input type="password" id="password" name="password" class="form-control" placeholder="Password"
-                 required="required">
-        </div>
-
-        <p></p>
-
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-      </form>
-
-      <p style="transform: translateY(30px);" class="text-center">Don't you have an account?<a th:action="@{/register}" href="/register"> Register </a></p>
-      <p style="transform: translateY(30px);" class="text-center"><a href="/"> Return to main page </a></p>
-    </article>
-  </div>
-</div>-->
-
 </body>
 
 </html>

@@ -80,7 +80,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }
-        String targetUrlParameter = getTargetUrlParameter();
+        String targetUrlParameter = "/";
         if (isAlwaysUseDefaultTargetUrl()
                 || (targetUrlParameter != null && StringUtils.hasText(request.getParameter(targetUrlParameter)))) {
             this.requestCache.removeRequest(request, response);
