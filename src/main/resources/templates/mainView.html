@@ -70,7 +70,7 @@
       <div th:unless="${analysis.appliedTestKey.size() != 0}">
         <p>No result of test available</p>
       </div>
-      <!--</canvas>->
+      <!--</canvas>-->
 
     </main>
   </div>
@@ -172,15 +172,27 @@
   actualBtn.addEventListener('change', async function () {
     fileChosen.textContent = this.files[0].name;
 
+    console.log("change detected")
+
     //enviamos el zip al controller
-    let form=document.forms['myForm'];
-    console.log(form.action);
+    let form = document.forms['myForm'];
+
     let source = this.files[0];
     let formData = new FormData();
-    formData.append("file", source);
-    await fetch(form.action, {method: "POST", body: formData})
+    formData.append("file", source); //parece ser que el multipart que se recibe es null
+
+    let params = {
+      method: "POST",
+      headers: {},
+      body: formData
+    };
+
+    params.headers["X-CSRF-TOKEN"] = config.csrf.value;
+    console.log("sending", form.action, params);
+
+    await fetch(form.action, params)
             .then(response => response.json())
-            .then(data => console.log("Response ok"));
+            .then(data => console.log(data))
   });
 </script>
 </body>

@@ -21,6 +21,18 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap-treeview.css}" href="/css/bootstrap-treeview.css" type="text/css" />
     <script th:src="@{/js/bootstrap-treeview.js}" src="/js/bootstrap-treeview.js"></script>
 
+    <!--Session-->
+    <script type="text/javascript">
+      const config = {
+        rootUrl: "[[${session.url}?:'']]",
+        csrf: {
+          name: "[[${_csrf.parameterName}]]",
+          value: "[[${_csrf.token}]]"
+        },
+        userId: +"[[${session.u != null} ? ${session.u.id} : -1]]"
+      };
+
+    </script>
   </th:block>
 </head>
 
