@@ -12,12 +12,12 @@
     <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block bg-light sidebar collapse" >
       <th:block th:if="${analysis.getSubs().size() == 0}">
         <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/sources'}">
-          <!--<input type="file" id="my-file" onchange="sendSources()" hidden/>
+          <!--<input type="file" id="my-file" hidden/>
           <label for="my-file" class="labelForButton">Upload File</label>
-          <span id="file-chosen">No file chosen</span>-->
-
+          <span id="file-chosen">No file chosen</span>
+          -->
           <input type="file" name="file" id="file"/><br>
-          <button class="btn btn-primary my-2" type="submit" value="Upload" id="uploadbutton" onclick="sendSources()">Upload sources</button>
+          <button class="btn btn-primary my-2" type="submit" value="Upload" id="uploadbutton">Upload sources</button>
 
         </form>
       </th:block>
@@ -25,22 +25,19 @@
         <div class="position-sticky pt-3 sidebar-sticky">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home align-text-bottom" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                Sources subidos con éxito
-              </a>
-            </li>
-          </ul>
-
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Run test</span>
-          </h6>
-          <ul class="nav flex-column mb-2">
-            <li class="nav-item">
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Run test</span>
+              </h6>
               <a class="nav-link" th:href="@{'/analysis/' + ${analysis.getId()} + '/Zip_ncd_sim'}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text align-text-bottom" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 NCD sim
               </a>
+            </li>
+            <li class="nav-item">
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Fuentes subidos con éxito:</span>
+              </h6>
+              <div class="tree table table-striped table-sm" id="tree" th:attr="analysis=${analysis.getId()}, size=${analysis.getSubs().size()}"></div>
             </li>
           </ul>
         </div>
@@ -59,7 +56,8 @@
       </div>
 
       <!--<canvas class="my-4 w-100" width="926" height="390" style="display: block; width: 926px; height: 390px;">-->
-        <table th:if="${analysis.appliedTestKey.size() != 0}">
+      <div class="table-responsive">
+        <table class="table table-striped table-sm" th:if="${analysis.appliedTestKey.size() != 0}">
           <th:block th:each="i : ${result}">
             <tr>
               <th:block th:each="j : ${i}">
@@ -68,152 +66,26 @@
             </tr>
           </th:block>
         </table>
-        <div th:unless="${analysis.appliedTestKey.size() != 0}">
-          <p>No result of test available</p>
-        </div>
+      </div>
+      <div th:unless="${analysis.appliedTestKey.size() != 0}">
+        <p>No result of test available</p>
+      </div>
       <!--</canvas>->
 
-      <!--<h2>Section title</h2>
-      <div class="table-responsive">
-        <table class="table table-striped table-sm">
-          <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td>1,001</td>
-            <td>random</td>
-            <td>data</td>
-            <td>placeholder</td>
-            <td>text</td>
-          </tr>
-          <tr>
-            <td>1,002</td>
-            <td>placeholder</td>
-            <td>irrelevant</td>
-            <td>visual</td>
-            <td>layout</td>
-          </tr>
-          <tr>
-            <td>1,003</td>
-            <td>data</td>
-            <td>rich</td>
-            <td>dashboard</td>
-            <td>tabular</td>
-          </tr>
-          <tr>
-            <td>1,003</td>
-            <td>information</td>
-            <td>placeholder</td>
-            <td>illustrative</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,004</td>
-            <td>text</td>
-            <td>random</td>
-            <td>layout</td>
-            <td>dashboard</td>
-          </tr>
-          <tr>
-            <td>1,005</td>
-            <td>dashboard</td>
-            <td>irrelevant</td>
-            <td>text</td>
-            <td>placeholder</td>
-          </tr>
-          <tr>
-            <td>1,006</td>
-            <td>dashboard</td>
-            <td>illustrative</td>
-            <td>rich</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,007</td>
-            <td>placeholder</td>
-            <td>tabular</td>
-            <td>information</td>
-            <td>irrelevant</td>
-          </tr>
-          <tr>
-            <td>1,008</td>
-            <td>random</td>
-            <td>data</td>
-            <td>placeholder</td>
-            <td>text</td>
-          </tr>
-          <tr>
-            <td>1,009</td>
-            <td>placeholder</td>
-            <td>irrelevant</td>
-            <td>visual</td>
-            <td>layout</td>
-          </tr>
-          <tr>
-            <td>1,010</td>
-            <td>data</td>
-            <td>rich</td>
-            <td>dashboard</td>
-            <td>tabular</td>
-          </tr>
-          <tr>
-            <td>1,011</td>
-            <td>information</td>
-            <td>placeholder</td>
-            <td>illustrative</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,012</td>
-            <td>text</td>
-            <td>placeholder</td>
-            <td>layout</td>
-            <td>dashboard</td>
-          </tr>
-          <tr>
-            <td>1,013</td>
-            <td>dashboard</td>
-            <td>irrelevant</td>
-            <td>text</td>
-            <td>visual</td>
-          </tr>
-          <tr>
-            <td>1,014</td>
-            <td>dashboard</td>
-            <td>illustrative</td>
-            <td>rich</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,015</td>
-            <td>random</td>
-            <td>tabular</td>
-            <td>information</td>
-            <td>text</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>-->
     </main>
   </div>
 </div>
 <!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
 
 <script>
-  function sendSources() {
+  //no funciona correctamente!!!!
+  async function sendSources() {
     let source = document.getElementById("file").files[0];
     let formData = new FormData();
 
     formData.append("file", source);
-    let form=document.forms['myForm'];
-    fetch(form.action, {method: "POST", body: formData}).then(response => {
+    let form = document.forms['myForm'];
+    await fetch(form.action, {method: "POST", body: formData}).then(response => {
       const r = response;
       if (r.ok) {
         return r.json().then(json => Promise.resolve(json));
@@ -226,16 +98,90 @@
     });
 
   }
+
+   async function getTree(url) {
+    /*var tree = [
+    {
+      text: "Parent 1",
+      selectable: false,
+      nodes: [
+    {
+      text: "Child 1",
+      selectable: false,
+      nodes: [
+    {
+      text: "Contenido 1"
+    },
+    {
+      text: "Contenido 2"
+    }
+      ]
+    },
+    {
+      text: "Child 2"
+    }
+      ]
+    },
+    {
+      text: "Parent 2"
+    },
+    {
+      text: "Parent 3"
+    },
+    {
+      text: "Parent 4"
+    },
+    {
+      text: "Parent 5"
+    }
+      ];*/
+    let tree = null;
+    let size = document.getElementById("tree").getAttribute("size");
+    while(size == 0){
+      size = document.getElementById("tree").getAttribute("size");
+    }
+
+    await fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              console.log("Response ok");
+              tree = data
+            });
+
+    console.log(tree);
+    return tree;
+  }
+
+  async function printTree(){
+    let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
+    let sources = await getTree(url);
+    console.log("proceding to call function with " + url);
+    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD'});
+    console.log("Out of function");
+  }
+
+  printTree();
+  //en un futuro función para que si pinchas en fichero se abra código
+
 </script>
-<!--<script>
+<script>
   const actualBtn = document.getElementById('my-file');
 
   const fileChosen = document.getElementById('file-chosen');
 
-  actualBtn.addEventListener('change', function(){
-    fileChosen.textContent = this.files[0].name
-    //sendSources();
-  })
-</script>-->
+  actualBtn.addEventListener('change', async function () {
+    fileChosen.textContent = this.files[0].name;
+
+    //enviamos el zip al controller
+    let form=document.forms['myForm'];
+    console.log(form.action);
+    let source = this.files[0];
+    let formData = new FormData();
+    formData.append("file", source);
+    await fetch(form.action, {method: "POST", body: formData})
+            .then(response => response.json())
+            .then(data => console.log("Response ok"));
+  });
+</script>
 </body>
 </html>
