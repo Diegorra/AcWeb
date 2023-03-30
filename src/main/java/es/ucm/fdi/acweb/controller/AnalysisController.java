@@ -5,7 +5,6 @@ import es.ucm.fdi.acweb.Mapper;
 import es.ucm.fdi.acweb.model.*;
 import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
-import es.ucm.fdi.ac.Submission;
 import es.ucm.fdi.ac.extract.FileTreeModel;
 import es.ucm.fdi.ac.extract.FileTreeNode;
 import es.ucm.fdi.ac.parser.AntlrTokenizerFactory;
@@ -75,6 +74,8 @@ public class AnalysisController {
      * Receives a zip, unzips it, and creates a source-set that is ready for
      * analysis
      */
+
+    //@ResponseBody
     @PostMapping("/{id}/sources")
     @Transactional
     //http://localhost:8080/sources
@@ -116,6 +117,7 @@ public class AnalysisController {
 
         model.addAttribute("analysis", analysis);
         return "redirect:/analysis/" + analysis.getId();
+        //return "{sources: " + analysis.getSourceSet().getSourceRoots().getTreeView() + "}";
     }
 
     @GetMapping("/{id}/{testKey}")
@@ -213,5 +215,12 @@ public class AnalysisController {
         return "mainView";
     }
 
+    @GetMapping("/{id}/getSources")
+    @ResponseBody
+    public ArrayList<FileTreeNodeWeb.Transfer> getSources(@PathVariable long id){
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        FileTreeNodeWeb.Transfer ftnwT = analysis.getSourceSet().getSourceRoots().toTransfer();
+        return ftnwT.getNodes();
+    }
 }
 

@@ -4,7 +4,9 @@ import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.extract.FileTreeModel;
 import es.ucm.fdi.ac.extract.FileTreeNode;
 import es.ucm.fdi.acweb.LocalData;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -12,11 +14,12 @@ import javax.persistence.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 @Entity
 @NoArgsConstructor
 @Data
-public class FileTreeNodeWeb {
+public class FileTreeNodeWeb implements Transferable<FileTreeNodeWeb.Transfer>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
@@ -67,6 +70,28 @@ public class FileTreeNodeWeb {
     @Override
     public int hashCode() {
         return Math.toIntExact(this.id);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class Transfer {
+        private String text;
+        private String href;
+        private ArrayList<FileTreeNodeWeb.Transfer> nodes;
+    }
+
+    @Override
+    public FileTreeNodeWeb.Transfer toTransfer() {
+        ArrayList<FileTreeNodeWeb.Transfer> childrenNodes = new ArrayList<>();
+        for(FileTreeNodeWeb i : this.children){
+            childrenNodes.add(new FileTreeNodeWeb.Transfer(i.path, i.path, i.toTransfer().nodes));
+        }
+        return new FileTreeNodeWeb.Transfer(path, path, childrenNodes);
+    }
+
+    @Override
+    public String toString() {
+        return toTransfer().toString();
     }
 
 }
