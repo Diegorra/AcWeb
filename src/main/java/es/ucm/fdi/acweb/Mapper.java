@@ -41,9 +41,10 @@ public class Mapper {
     @Transactional
     public ArrayList<SubmissionWeb> getSubmissions(Analysis ac, AnalysisWeb analysis){
         ArrayList<SubmissionWeb> submissionWebs = new ArrayList<>();
-        ArrayList<SourceWeb> roots = new ArrayList<>();
         for(Submission sub : ac.getSubmissions()){
             SubmissionWeb submissionWeb= new SubmissionWeb();
+            entityManager.persist(submissionWeb);
+            ArrayList<SourceWeb> roots = new ArrayList<>();
             for(Submission.Source source : sub.getSources()){
                 SourceWeb sourceWeb = sourceFromAc(source, submissionWeb);
                 entityManager.persist(sourceWeb);
