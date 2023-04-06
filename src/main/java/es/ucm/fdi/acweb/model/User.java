@@ -17,6 +17,10 @@ import java.util.List;
         @NamedQuery(name="User.byUsername",
                 query="SELECT u FROM User u "
                         + "WHERE u.username = :username AND u.enabled = TRUE"),
+        @NamedQuery(name="User.hasUsername",
+                query="SELECT COUNT(u) "
+                        + "FROM User u "
+                        + "WHERE u.username = :username"),
 })
 @Table(name="AcUser")
 public class User implements Transferable<User.Transfer> {
@@ -58,7 +62,7 @@ public class User implements Transferable<User.Transfer> {
     @AllArgsConstructor
     public static class Transfer {
         private long id;
-        private String mail;
+        private String username;
     }
 
     @Override
