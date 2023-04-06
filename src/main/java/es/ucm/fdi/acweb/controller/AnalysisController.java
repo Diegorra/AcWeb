@@ -75,7 +75,7 @@ public class AnalysisController {
      * analysis
      */
 
-    //@ResponseBody
+    //  @ResponseBody
     @PostMapping("/{id}/sources")
     @Transactional
     //http://localhost:8080/sources
@@ -117,7 +117,7 @@ public class AnalysisController {
 
         model.addAttribute("analysis", analysis);
         return "redirect:/analysis/" + analysis.getId();
-        //return "{sources: " + analysis.getSourceSet().getSourceRoots().getTreeView() + "}";
+        //return "Everything ok";
     }
 
     @GetMapping("/{id}/{testKey}")
@@ -152,8 +152,6 @@ public class AnalysisController {
             ArrayList<String> keys = new ArrayList<>();
             keys.add(testKey);
             map.persistData(analysis, ac, keys);
-            //analysis.persistData(ac, keys);
-            //entityManager.persist(analysis);
         }
 
 
@@ -173,15 +171,6 @@ public class AnalysisController {
             }
          }
 
-        /*int[][] matrix = new int[3][3];
-
-        int value = 1;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                matrix[i][j] = value;
-                value++;
-            }
-        }*/
 
         model.addAttribute("analysis", analysis);
         model.addAttribute("result", matrix);
@@ -221,6 +210,23 @@ public class AnalysisController {
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
         FileTreeNodeWeb.Transfer ftnwT = analysis.getSourceSet().getSourceRoots().toTransfer();
         return ftnwT.getNodes();
+    }
+
+    @GetMapping("/{analysisId}/get/{id1}/{id2}")
+    public String getCodeComparison(@PathVariable long analysisId, @PathVariable int id1, @PathVariable int id2, Model model){
+        SubmissionWeb sub1 = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
+                .setParameter("id", id1)
+                .setParameter("analysisId", analysisId)
+                .getSingleResult();
+        SubmissionWeb sub2 = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
+                .setParameter("id", id2)
+                .setParameter("analysisId", analysisId)
+                .getSingleResult();
+
+        model.addAttribute("code1", sub1.getSourceRoots().get(0).getCode());
+        model.addAttribute("code2", sub2.getSourceRoots().get(0).getCode());
+
+        return "codeOfFile";
     }
 }
 

@@ -31,8 +31,13 @@
         },
         userId: +"[[${session.u != null} ? ${session.u.id} : -1]]"
       };
-
     </script>
+
+    <!--CodeMirror-->
+    <link rel="stylesheet" th:href="@{/css/monokai.css}" href="/css/monokai.css" type="text/css" />
+    <link rel="stylesheet" th:href="@{/css/codemirror.css}" href="/css/codemirror.css" type="text/css" />
+    <script th:src="@{/js/codemirror.js}" src="/js/codemirror.js"></script>
+    <script th:src="@{/js/clike.js}" src="/js/clike.js"></script>
   </th:block>
 </head>
 
