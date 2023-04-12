@@ -13,6 +13,9 @@ import es.ucm.fdi.ac.test.Test;
 import es.ucm.fdi.ac.test.TokenizingTest;
 import es.ucm.fdi.util.archive.ZipFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +27,7 @@ import org.apache.logging.log4j.Logger;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -53,7 +55,9 @@ public class AnalysisController {
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
 
 
-    /** Función auxiliar que descomprime el fichero de entrada en ./data **/
+    /**
+     * Auxiliary function that unzips input file in ./data
+     */
     public void unzip(MultipartFile file, Path targetPath) throws IOException {
         try (ZipInputStream inputStream = new ZipInputStream(file.getInputStream())) {
             for (ZipEntry entry; (entry = inputStream.getNextEntry()) != null;) {
@@ -74,7 +78,6 @@ public class AnalysisController {
      * Receives a zip, unzips it, and creates a source-set that is ready for
      * analysis
      */
-
     //  @ResponseBody
     @PostMapping("/{id}/sources")
     @Transactional
@@ -155,14 +158,6 @@ public class AnalysisController {
         }
 
 
-        /** Report results and send back to model
-        ArrayList<Object> matrix = new ArrayList<>();
-        for (Submission sb : ac.getSubmissions()) {
-            Object o = sb.getData("Zip_ncd_sim");
-            matrix.add(o);
-        }**/
-
-
          /** Enviar al modelo **/
          ArrayList<List<Float>> matrix = new ArrayList<>();
          for(SubmissionWeb sb : analysis.getSubs()){
@@ -196,6 +191,9 @@ public class AnalysisController {
         return "mainView";
     }
 
+    /**
+     * Loads an existing analysis
+     */
     @GetMapping("/{id}")
     @Transactional
     public String loadAnalysis(@PathVariable long id, Model model){
@@ -204,6 +202,9 @@ public class AnalysisController {
         return "mainView";
     }
 
+    /**
+     * Get all sources of analysis to display tree view
+     */
     @GetMapping("/{id}/getSources")
     @ResponseBody
     public ArrayList<FileTreeNodeWeb.Transfer> getSources(@PathVariable long id){
@@ -212,6 +213,9 @@ public class AnalysisController {
         return ftnwT.getNodes();
     }
 
+    /**
+     * Gets two codes of sources for comparison
+     */
     @GetMapping("/{analysisId}/get/{id1}/{id2}")
     public String getCodeComparison(@PathVariable long analysisId, @PathVariable int id1, @PathVariable int id2, Model model){
         SubmissionWeb sub1 = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
@@ -223,10 +227,21 @@ public class AnalysisController {
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
 
+        model.addAttribute("id1", sub1.getId_authors());
         model.addAttribute("code1", sub1.getSourceRoots().get(0).getCode());
-        model.addAttribute("code2", sub2.getSourceRoots().get(0).getCode());
 
+        model.addAttribute("id2", sub2.getId_authors());
+        model.addAttribute("code2", sub2.getSourceRoots().get(0).getCode());
         return "codeOfFile";
+    }
+
+    @GetMapping("/download/{id}")
+    @ResponseBody
+    public String download(@PathVariable long id) throws IOException {
+        File targetDir = localData.getFolder("analysis/" + id);
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(targetDir));
+
+        return resource.getFilename();
     }
 }
 

@@ -50,7 +50,7 @@
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="download()">Export</button>
           </div>
         </div>
       </div>
@@ -58,8 +58,6 @@
       <!--<canvas class="my-4 w-100" width="926" height="390" style="display: block; width: 926px; height: 390px;">-->
       <div class="table-responsive">
         <table class="table table-striped table-sm" th:if="${analysis.appliedTestKey.size() != 0}">
-          <!--<th:block th:each="i : ${result}">-->
-              <!--<th:block th:each="j : ${i}"-->
                 <tr>
                   <th scope="col"></th>
                   <th scope="col" th:each="sub : ${analysis.getSubs()}" th:text="${sub.getId_authors()}"></th>
@@ -76,7 +74,6 @@
                     </th:block>
                   </tr>
                 </th:block>
-          <!--</th:block>-->
         </table>
       </div>
       <div th:unless="${analysis.appliedTestKey.size() != 0}">
@@ -90,27 +87,6 @@
   <!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
 
 <script>
-  //no funciona correctamente!!!!
-  async function sendSources() {
-    let source = document.getElementById("file").files[0];
-    let formData = new FormData();
-    formData.append("file", source);
-
-    let form = document.forms['myForm'];
-    await fetch(form.action, {method: "POST", body: formData}).then(response => {
-      const r = response;
-      if (r.ok) {
-        return r.json().then(json => Promise.resolve(json));
-      } else {
-        return r.text().then(text => Promise.reject({
-          status: r.status,
-          text
-        }));
-      }
-    });
-
-  }
-
   /*FUNCIONES CREADAS PARA PINTAR ARBOL DE FUENTES*/
   async function getTree(url) {
     let tree = null;
@@ -149,6 +125,17 @@
               console.log("Response ok");
             });
   }*/
+
+  /* FUNCIONES PARA DESCARGAR SOURCES */
+  async function download(){
+    let url = "/analysis/download/" + document.getElementById("tree").getAttribute("analysis");
+    await fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              console.log("Response ok");
+              console.log(data);
+            });
+  }
 
 </script>
 <script>
