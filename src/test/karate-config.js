@@ -1,5 +1,5 @@
 function fn() {
-    var env = karate.env; // get system property 'karate.env'
+    let env = karate.env; // get system property 'karate.env'
     karate.log('karate.env system property was:', env);
 
     if (!env) {
@@ -9,11 +9,11 @@ function fn() {
     /**
      * Variables here are available in all tests
      */
-    var config = {
+    const config = {
         env: env,
         myVarName: 'someValue',
         baseUrl: 'http://localhost:8080'
-    }
+    };
 
     /**
      * Drivers for tests - currently configured value is good for Linux

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-      <html class="h-100" xmlns:th="http://www.thymeleaf.org" >
+<html class="h-100" xmlns:th="http://www.thymeleaf.org" >
 
-      <head>
-      <th:block th:replace="fragments/header :: header" />
-      <title>Register</title>
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <th:block th:replace="fragments/header :: header" />
 </head>
 
 <body class="d-flex flex-column h-100 bg">
@@ -33,7 +34,7 @@
                             </svg>
                         </span>
           </div>
-          <input type="text" name="username" class="form-control" placeholder="Username" th:field="*{username}" required="required"/>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Username" th:field="*{username}" required="required"/>
         </div>
 
         <p></p>
@@ -48,7 +49,7 @@
                             </svg>
                         </span>
           </div>
-          <input type="password" name="password" class="form-control" placeholder="Create password" th:field="*{passwd}" required="required"/><!---->
+          <input type="password" id="password" name="password" class="form-control" placeholder="Create password" th:field="*{passwd}" required="required"/><!---->
         </div>
 
         <p></p>
@@ -61,12 +62,6 @@
   </div>
 </div>
 
-
-</body>
-
-</html></title>
-</head>
-<body>
 
 </body>
 </html>
