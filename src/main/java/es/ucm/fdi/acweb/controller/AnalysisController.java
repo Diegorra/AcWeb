@@ -227,11 +227,28 @@ public class AnalysisController {
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
 
-        model.addAttribute("id1", sub1.getId_authors());
+        model.addAttribute("id1", sub1.getId_authors() + ": " + sub1.getSourceRoots().get(0).getFileName());
         model.addAttribute("code1", sub1.getSourceRoots().get(0).getCode());
 
-        model.addAttribute("id2", sub2.getId_authors());
+        model.addAttribute("id2", sub2.getId_authors()+ ": " + sub2.getSourceRoots().get(0).getFileName());
         model.addAttribute("code2", sub2.getSourceRoots().get(0).getCode());
+        return "codeComparison";
+    }
+
+    @GetMapping("/{analysisId}/getFile/{name}/{file}")
+    public String getCodeOfFile(@PathVariable long analysisId, @PathVariable String name, @PathVariable String file, Model model){
+        SubmissionWeb sub = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
+                .setParameter("id", name)
+                .setParameter("analysisId", analysisId)
+                .getSingleResult();
+
+        SourceWeb source = entityManager.createNamedQuery("SourceWeb.byFileName", SourceWeb.class)
+                .setParameter("file", file)
+                .setParameter("id", sub.getId())
+                .getSingleResult();
+
+        model.addAttribute("id1", sub.getId_authors() + ": " + sub.getSourceRoots().get(0).getFileName());
+        model.addAttribute("code1", source.getCode());
         return "codeOfFile";
     }
 

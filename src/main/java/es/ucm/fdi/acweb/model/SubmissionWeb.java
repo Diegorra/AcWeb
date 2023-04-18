@@ -20,6 +20,9 @@ import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
         @NamedQuery(name="SubmissionWeb.byInternalId",
                 query="SELECT s FROM SubmissionWeb s "
                         + "WHERE s.internalId = : id AND s.analysis.id  = : analysisId"),
+        @NamedQuery(name="SubmissionWeb.byIdAuthors",
+                query="SELECT s FROM SubmissionWeb s "
+                        + "WHERE s.id_authors = : id AND s.analysis.id  = : analysisId"),
 })
 public class SubmissionWeb {
     @Id
