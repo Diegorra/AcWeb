@@ -9,6 +9,11 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @Data
+@NamedQueries({
+        @NamedQuery(name="SourceWeb.byFileName",
+                query="SELECT s FROM SourceWeb s "
+                        + "WHERE s.fileName = : file AND s.sub.id  = : id"),
+})
 public class SourceWeb {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")

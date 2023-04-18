@@ -86,7 +86,7 @@ public class FileTreeNodeWeb implements Transferable<FileTreeNodeWeb.Transfer>{
     public FileTreeNodeWeb.Transfer toTransfer() {
         ArrayList<FileTreeNodeWeb.Transfer> childrenNodes = new ArrayList<>();
         for(FileTreeNodeWeb i : this.children){
-            childrenNodes.add(new FileTreeNodeWeb.Transfer(i.path, i.path, false, i.toTransfer().nodes));
+            childrenNodes.add(new FileTreeNodeWeb.Transfer(i.path, i.path, i.getChildren().isEmpty(), i.toTransfer().nodes));
         }
         return new FileTreeNodeWeb.Transfer(path, path, false, childrenNodes);
     }

@@ -107,24 +107,24 @@
   }
 
   async function printTree(){
+    //En un primer paso pintamos el árbol al obtener los sources
     let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
+    console.log("proceeding to call function with " + url);
     let sources = await getTree(url);
-    console.log("proceding to call function with " + url);
     $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD'});
+
+    //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
+    $('#tree').on('nodeSelected', async function (event, data) {
+      console.log(data.nodeId + " was selected");
+      window.location = "http://localhost:8080/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getFile" + data.href;
+      console.log("Node was selected, exit function");
+
+    });
     console.log("Out of function");
   }
 
   printTree();
-  //en un futuro función para que si pinchas en fichero se abra código
 
-
-  /*async function viewSourceCode(id1, id2){
-    await fetch("/analysis/1/get/" + id1 + "/" + id2)
-            .then(response => response.json())
-            .then(data => {
-              console.log("Response ok");
-            });
-  }*/
 
   /* FUNCIONES PARA DESCARGAR SOURCES */
   async function download(){

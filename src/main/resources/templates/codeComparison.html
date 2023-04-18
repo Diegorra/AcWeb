@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Code comparison</title>
+  <th:block th:replace="fragments/header :: header" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/theme/monokai.min.css">
+</head>
+<body>
+<th:block th:replace="fragments/nav :: nav"/>
+
+<div class="row m-4">
+  <div class="col-md-6 col-6">
+    <h1 class="h2 text-center" th:text="${id1}"></h1>
+    <textarea id="code1"th:text="${code1}"></textarea>
+  </div>
+  <div class="col-md-6 col-6">
+    <h1 class="h2 text-center" th:text="${id2}"></h1>
+    <textarea id="code2" th:text="${code2}"></textarea>
+  </div>
+</div>
+
+
+<script>
+  let code1 = document.querySelector('#code1');
+  let code2 = document.querySelector('#code2');
+
+  let codem1 = CodeMirror.fromTextArea(code1, {
+    lineNumbers: true,
+    tabSize: 2,
+    value: code1.value,
+    mode: 'text/x-java',
+    resize: 'vertical',
+    suppressEdits: true,
+    theme: 'monokai',
+    readOnly: true
+  })
+
+  codem1.setSize(screen.width/2, (screen.height*85)/100);
+
+  let codem2 = CodeMirror.fromTextArea(code2, {
+    lineNumbers: true,
+    value: code2.value,
+    mode: 'text/x-java',
+    suppressEdits: true,
+    resize: 'vertical',
+    theme: 'monokai',
+    readOnly: true
+  })
+
+  codem2.setSize(screen.width/2, (screen.height*85)/100);
+
+</script>
+</body>
+</html>
