@@ -15,6 +15,8 @@
 	<description>Anti-copy web sw</description>
 	<properties>
 		<java.version>11</java.version>
+		<maven.compiler.version>3.8.1</maven.compiler.version>
+		<maven.surefire.version>2.22.2</maven.surefire.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -76,7 +78,8 @@
 		<dependency>
 			<groupId>com.intuit.karate</groupId>
 			<artifactId>karate-junit5</artifactId>
-			<version>1.3.1</version>
+			<scope>test</scope>
+			<version>1.1.0</version>
 		</dependency>
 	</dependencies>
 
