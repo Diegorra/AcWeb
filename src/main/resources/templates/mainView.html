@@ -46,11 +46,13 @@
 
     <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2" th:text="'Result of test for ' + ${analysis.getName()}"></h1>
+        <h1 class="h2">
+          Result of test for: <span th:text="${analysis.getName()}" style="color: #808080;"></span>
+        </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="download()">Export</button>
+            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export</button>
           </div>
         </div>
       </div>
@@ -64,11 +66,11 @@
                 </tr>
                 <th:block th:each="sub : ${analysis.getSubs()}">
                   <tr>
-                    <th scope="row" th:text="${sub.getId_authors()}"></th>
+                    <th class="small-cell" scope="row" th:text="${sub.getId_authors()}"></th>
                     <th:block th:each="i : ${sub.getData()}">
                       <th:block th:each="j : ${i.getResult()}">
-                        <td th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'">
-                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${j}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getInternalId()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getInternalId()}}"></a>
+                        <td class="small-cell" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'">
+                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getInternalId()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getInternalId()} + '/0'}" th:title="${sub.getId_authors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()} + ' tienen similitud ' + ${j}"></a>
                         </td>
                       </th:block>
                     </th:block>
@@ -101,8 +103,6 @@
               console.log("Response ok");
               tree = data
             });
-
-    console.log(tree);
     return tree;
   }
 
@@ -111,7 +111,7 @@
     let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
     console.log("proceeding to call function with " + url);
     let sources = await getTree(url);
-    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD'});
+    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1});
 
     //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
     $('#tree').on('nodeSelected', async function (event, data) {
@@ -126,16 +126,37 @@
   printTree();
 
 
-  /* FUNCIONES PARA DESCARGAR SOURCES */
-  async function download(){
-    let url = "/analysis/download/" + document.getElementById("tree").getAttribute("analysis");
-    await fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              console.log("Response ok");
-              console.log(data);
-            });
-  }
+  /* DESCARGAR SOURCES */
+  document.addEventListener('DOMContentLoaded', function () {
+    // Asignar un evento de clic al botón con el ID "downloadButton"
+    document.getElementById('downloadButton').addEventListener('click', function () {
+      let directoryName = document.getElementById("tree").getAttribute("analysis");
+      // URL del endpoint del controlador DownloadController
+      let url = "/analysis/download/" + document.getElementById("tree").getAttribute("analysis");
+
+      // Realizar una llamada fetch para descargar el archivo ZIP
+      fetch(url)
+              .then(function (response) {
+                if (!response.ok) {
+                  throw new Error('Error al descargar el directorio: ' + response.statusText);
+                }
+                return response.blob();
+              })
+              .then(function (data) {
+                // Crear un enlace temporal y simular un clic para descargar el archivo
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(data);
+                link.download = directoryName + '.zip';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              })
+              .catch(function (error) {
+                console.error(error);
+              });
+    });
+  });
 
 </script>
 <script>

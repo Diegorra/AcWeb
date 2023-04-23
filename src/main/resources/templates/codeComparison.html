@@ -1,27 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title>Code comparison</title>
   <th:block th:replace="fragments/header :: header" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/theme/monokai.min.css">
 </head>
 <body>
 <th:block th:replace="fragments/nav :: nav"/>
 
-<div class="row m-4">
+<div id="main" class="row m-4" th:attr="index=${index}, length=${length}">
+  <div th:if="${length > 1}" class="btn-group me-2">
+    <button id="prev" type="button" class="btn btn-sm btn-outline-secondary"> < </button>
+    <button id="next" type="button" class="btn btn-sm btn-outline-secondary"> > </button>
+  </div>
   <div class="col-md-6 col-6">
     <h1 class="h2 text-center" th:text="${id1}"></h1>
-    <textarea id="code1"th:text="${code1}"></textarea>
+    <textarea id="code1" th:text="${source1}"></textarea>
   </div>
   <div class="col-md-6 col-6">
     <h1 class="h2 text-center" th:text="${id2}"></h1>
-    <textarea id="code2" th:text="${code2}"></textarea>
+    <textarea id="code2" th:text="${source2}"></textarea>
   </div>
 </div>
 
 
 <script>
+  let it = parseInt(document.querySelector('#main').getAttribute("index"));
+  console.log(it);
+
+  let length = parseInt(document.querySelector('#main').getAttribute("length"));
+  console.log(length);
+
   let code1 = document.querySelector('#code1');
   let code2 = document.querySelector('#code2');
 
@@ -36,7 +45,7 @@
     readOnly: true
   })
 
-  codem1.setSize(screen.width/2, (screen.height*85)/100);
+  codem1.setSize(screen.width/2, (screen.height*82)/100);
 
   let codem2 = CodeMirror.fromTextArea(code2, {
     lineNumbers: true,
@@ -48,7 +57,37 @@
     readOnly: true
   })
 
-  codem2.setSize(screen.width/2, (screen.height*85)/100);
+  codem2.setSize(screen.width/2, (screen.height*82)/100);
+
+
+  document.getElementById('prev').addEventListener('click', function () {
+    let currentUrl = window.location.href;
+
+    if(it === 0){
+      it = length - 1;
+    }else{
+      it--;
+    }
+
+    let baseUrl = currentUrl.substring(0, currentUrl.length - 1);
+    window.location.href = baseUrl + it;
+
+
+  });
+
+  document.getElementById('next').addEventListener('click', function () {
+    let currentUrl = window.location.href;
+
+    if(it === length -1 ){
+      it = 0;
+    }else{
+      it ++;
+    }
+
+    let baseUrl = currentUrl.substring(0, currentUrl.length - 1);
+    window.location.href = baseUrl + it;
+
+  });
 
 </script>
 </body>
