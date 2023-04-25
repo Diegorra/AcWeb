@@ -4,7 +4,9 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -70,4 +72,27 @@ public class ZipFileExtractor {
             return false;
         }
     }
+
+    public void clean(File[] files, ArrayList<String> filters) throws IOException {
+        for (File file : files) {
+            if (file.isDirectory()) {
+                System.out.println("Directory: " + file.getAbsolutePath());
+                clean(file.listFiles(), filters);
+            } else {
+                String fileExtension = getFileExtension(file.getName());
+                if(!filters.contains(fileExtension)){
+                    Files.delete(file.toPath());
+                }
+            }
+        }
+    }
+
+    private static String getFileExtension(String filename) {
+        int index = filename.lastIndexOf('.');
+        if (index == -1) {
+            return ""; // No se encontró un punto en el nombre del archivo
+        }
+        return filename.substring(index + 1);
+    }
+
 }

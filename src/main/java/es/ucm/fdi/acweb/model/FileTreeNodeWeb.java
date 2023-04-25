@@ -31,7 +31,7 @@ public class FileTreeNodeWeb implements Transferable<FileTreeNodeWeb.Transfer>{
     @OneToOne
     private SourceSetWeb ss;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     private FileTreeNodeWeb parent;
 
     @OneToMany(cascade=CascadeType.ALL)
