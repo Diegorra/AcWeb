@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,10 +35,12 @@ import java.nio.file.*;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static org.apache.commons.io.FileUtils.copyDirectory;
 
 
 @Controller
@@ -71,30 +74,35 @@ public class AnalysisController {
     public static class NoEsTuPerfilException extends RuntimeException {}
 
     // check permissions
-    private boolean isAuthorised(HttpSession session, Long id){
+    private void isAuthorised(HttpSession session, Long id){
         User requester = (User)session.getAttribute("u");
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
         if (!requester.getId().equals(analysis.getOwner().getId())) {
             throw new NoEsTuPerfilException();
         }
-        return true;
     }
 
-    /**
-     * Receives a zip, unzips it, and creates a source-set that is ready for
-     * analysis
-     */
-    //  @ResponseBody
-    @PostMapping("/{id}/sources")
     @Transactional
-    //http://localhost:8080/sources
-    public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model, HttpSession session) throws IOException {
-        isAuthorised(session, id);
-        /** Build structure of SourceSet **/
-        // Unzip folder with sources
-        File targetDir = localData.getFolder("analysis/" + id);
-        zfx.extractZip(rootFile, targetDir.toPath());
+    public void cleanAnalysis(long id){
+        AnalysisWeb analysisWeb = entityManager.find(AnalysisWeb.class, id);
 
+        entityManager.remove(analysisWeb.getSourceSet());
+
+        for(SubmissionWeb sub : analysisWeb.getSubs()){
+            entityManager.remove(sub);
+        }
+
+        analysisWeb.setAppliedTestKey(new ArrayList<>());
+
+        analysisWeb.setSubs(new ArrayList<>());
+        analysisWeb.setAppliedTestKey(new ArrayList<>());
+
+        entityManager.merge(analysisWeb);
+
+    }
+
+    @Transactional
+    public AnalysisWeb load(File targetDir, long id, HttpSession session) throws IOException {
         // Look deeper until more than 1 child
         while (targetDir.listFiles().length == 1) {
             targetDir = targetDir.listFiles()[0];
@@ -119,9 +127,102 @@ public class AnalysisController {
         SourceSetWeb ssw = map.getSourceSetWeb(ss, analysis);
         ArrayList<SubmissionWeb> submissionWebs = map.getSubmissions(ac, analysis);
 
-        analysis.fromAc(entityManager.find(User.class, requester.getId()), ssw, submissionWebs, rootFile.getOriginalFilename().replaceAll("\\.zip$", ""));
+        analysis.fromAc(entityManager.find(User.class, requester.getId()), ssw, submissionWebs, analysis.getName());
         entityManager.persist(analysis);
-        log.info("Analysis {} persisted", rootFile.getOriginalFilename());
+        log.info("Analysis {} persisted", analysis.getName());
+
+        return analysis;
+    }
+
+    @Transactional
+    public void loadFilter(long id, List<String> filters, HttpSession session) throws IOException {
+        File srcDir = localData.getFolder("analysis/" + id + "/rawInput");
+        File targetDir = localData.getFolder("analysis/" + id + "/filterInput");
+
+        //Borramos si existe directorio cleanInput
+        if(Files.exists(targetDir.toPath()) && targetDir.listFiles().length >= 1){
+            //FileUtils.deleteDirectory(targetDir);
+            FileSystemUtils.deleteRecursively(targetDir);
+        }
+
+        //Copiamos los contenidos de rawInput a filterInput
+        try {
+            copyDirectory(srcDir, targetDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //Creamos un array con las extensiones que están permitidas en todos los test activos
+        ArrayList<String> allowedExtensions = new ArrayList<>();
+        for(String filter : filters){
+            ArrayList<String> i = new ArrayList<>(Arrays.asList(filter.split(",")));
+            allowedExtensions.addAll(i);
+        }
+
+        //recorremos directorio y chequeamos que cumple filtros siempre que haya, sino borramos
+        if(!filters.isEmpty()){
+            zfx.clean(targetDir.listFiles(), allowedExtensions);
+        }
+
+        AnalysisWeb analysis = load(targetDir, id, session);
+        analysis.setFilters(filters);
+
+        entityManager.persist(analysis);
+    }
+
+    /**
+     * Filter sources given a String with the extension
+     * **/
+    @PostMapping("/{id}/newFilter")
+    @Transactional
+    public String addFilter(@PathVariable long id, @RequestParam("filters") String newFilter, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        //Obtenemos filtros previos y añadimos el nuevo
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        List<String> filters = analysis.getFilters();
+        filters.add(newFilter);
+
+        cleanAnalysis(id);
+        loadFilter(id, filters, session);
+
+        model.addAttribute("analysis", analysis);
+        return "redirect:/analysis/" + analysis.getId();
+
+
+    }
+
+    @GetMapping("/{id}/removeFilter/{filter}")
+    @Transactional
+    @ResponseBody
+    public ResponseEntity<String> removeFilter(@PathVariable long id, @PathVariable String filter, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
+        filters.remove(filter);
+
+        cleanAnalysis(id);
+        loadFilter(id, filters, session);
+
+        return ResponseEntity.ok("{}");
+    }
+
+    /**
+     * Receives a zip, unzips it, and creates a source-set that is ready for
+     * analysis
+     */
+    //  @ResponseBody
+    @PostMapping("/{id}/sources")
+    @Transactional
+    //http://localhost:8080/sources
+    public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        /** Build structure of SourceSet **/
+        // Unzip folder with sources
+        File targetDir = localData.getFolder("analysis/" + id + "/rawInput");
+        zfx.extractZip(rootFile, targetDir.toPath());
+
+        AnalysisWeb analysis = load(targetDir, id, session);
+        analysis.setName(rootFile.getOriginalFilename().replaceAll("\\.zip$", ""));
+        entityManager.persist(analysis);
 
         model.addAttribute("analysis", analysis);
         return "redirect:/analysis/" + analysis.getId();
@@ -137,7 +238,12 @@ public class AnalysisController {
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
 
         if(!analysis.getAppliedTestKey().contains(testKey)){
-            Analysis ac = analysis.analysisToAc(localData.getFolder("analysis/" + id));
+            // Vemos si hay filtros aplicado para correr el test sobre los mismo
+            File targetDir = localData.getFolder("analysis/" + id + "/filterInput");
+            if(!Files.exists(targetDir.toPath()) || targetDir.listFiles().length < 1){
+                targetDir = localData.getFolder("analysis/" + id + "/rawInput");
+            }
+            Analysis ac = analysis.analysisToAc(targetDir);
 
             // Prepare tokenization
             Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
@@ -208,6 +314,8 @@ public class AnalysisController {
         model.addAttribute("analysis", analysis);
         return "mainView";
     }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Get all sources of analysis to display tree view

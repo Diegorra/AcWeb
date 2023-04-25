@@ -24,7 +24,8 @@ public class SourceSetWeb {
 
     @OneToOne
     private AnalysisWeb analysis;
-    @OneToOne
+
+    @OneToOne(cascade = CascadeType.REMOVE)
     private FileTreeNodeWeb sourceRoots;
 
     public SourceSet sourceSetToAc(File basePath) throws IOException {

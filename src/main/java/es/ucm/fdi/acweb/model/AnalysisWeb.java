@@ -27,7 +27,7 @@ public class AnalysisWeb {
 
     private String name;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name="analysis_id")
     private SourceSetWeb sourceSet;
 
@@ -38,6 +38,9 @@ public class AnalysisWeb {
     @ElementCollection
     private List<String> appliedTestKey = new ArrayList<>();
 
+    @ElementCollection
+    private List<String> filters = new ArrayList<>();
+
 
     public Analysis analysisToAc(File basePath) throws IOException {
         Analysis ac = new Analysis();
@@ -45,19 +48,6 @@ public class AnalysisWeb {
         return ac;
     }
 
-    /*public void analysisFromAc(Analysis ac, User owner, SourceSetWeb sourceSetWeb, String name){
-
-        this.setOwner(owner);
-        this.setName(name);
-        this.setSourceSet(sourceSetWeb);
-
-        this.getSubs().clear();
-        for(Submission sub : ac.getSubmissions()){
-            SubmissionWeb subWeb = submissionFromAc(sub, this);
-            this.getSubs().add(subWeb);
-        }
-
-    }*/
 
     public void fromAc(User owner, SourceSetWeb sourceSetWeb, ArrayList<SubmissionWeb> subs, String name){
 
@@ -67,17 +57,6 @@ public class AnalysisWeb {
         this.setSubs(subs);
 
     }
-
-    /*public void persistData(Analysis ac, ArrayList<String> keys){
-        for(Submission sub : ac.getSubmissions()){
-            SubmissionWeb subWeb = this.getSubs().get(sub.getInternalId());
-            for(String testKey : keys){//para cada submission chequeamos si se ha aplicado alguno de los test, en cuyo caso lo persistimos
-                if(ac.hasResultsForKey(testKey)){
-                    subWeb.persistData(testKey, sub);
-                }
-            }
-        }
-    }*/
 
     @Override
     public int hashCode() {

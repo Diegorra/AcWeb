@@ -12,13 +12,9 @@
     <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block bg-light sidebar collapse" >
       <th:block th:if="${analysis.getSubs().size() == 0}">
         <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/sources'}">
-          <!--<input type="file" id="my-file" hidden/>
-          <label for="my-file" class="labelForButton">Upload File</label>
-          <span id="file-chosen">No file chosen</span>
-          -->
-          <input type="file" name="file" id="file"/><br>
-          <button class="btn btn-primary my-2" type="submit" value="Upload" id="uploadbutton">Upload sources</button>
-
+          <label for="file" class="form-label">ZIP file: </label>
+          <input type="file" class="form-control" name="file" id="file"/><br>
+          <button class="btn btn-primary my-2" type="submit" value="Upload" id="upload-button">Upload sources</button>
         </form>
       </th:block>
       <th:block th:unless="${analysis.getSubs().size() == 0}">
@@ -33,10 +29,29 @@
                 NCD sim
               </a>
             </li>
+            <li>
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Apply filters</span>
+              </h6>
+              <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/newFilter'}">
+                <div class="mb-3">
+                  <input type="text" class="form-control" aria-describedby="filterHelp" name="filters" id="filters"/>
+                  <div id="filterHelp" class="form-text">Set what kind of files you want to analyze giving the extension separated by commas.</div>
+                </div>
+                <button class="btn btn-primary my-2 btn-sm" type="submit" value="Upload">Filter sources</button>
+
+              </form>
+            </li>
             <li class="nav-item">
               <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
                 <span>Fuentes subidos con éxito:</span>
               </h6>
+              <div th:if="${analysis.getFilters().size() != 0}">
+                <span>Applied filters: </span>
+                <th:block th:each="i : ${analysis.getFilters()}">
+                  <button class="btn btn-primary my-2 btn-sm" type="button" th:text="${i} + ' x'" style="border-radius: 12px;" onclick="removeFilter(event, this.getAttribute('filter'))" th:attr="filter=${i}"></button>
+                </th:block>
+              </div>
               <div class="tree table table-striped table-sm" id="tree" th:attr="analysis=${analysis.getId()}, size=${analysis.getSubs().size()}"></div>
             </li>
           </ul>
@@ -111,7 +126,7 @@
     let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
     console.log("proceeding to call function with " + url);
     let sources = await getTree(url);
-    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1});
+    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1, collapseIcon: 'glyphicon glyphicon-menu-up', expandIcon: 'glyphicon glyphicon-menu-down'});
 
     //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
     $('#tree').on('nodeSelected', async function (event, data) {
@@ -124,6 +139,38 @@
   }
 
   printTree();
+
+  /* ELIMINAR FILTRO */
+   function fetchData(url, buttonElement) {
+    fetch(url)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+              return response.text();
+            })
+            .then(text => {
+              if (text) {
+                const data = JSON.parse(text);
+                // Haz algo con 'data' si es necesario
+              }
+
+              console.log("Response ok");
+              printTree();
+              buttonElement.remove(); // Elimina el botón
+            })
+            .catch(error => {
+              console.error("Error fetching data:", error);
+            });
+  }
+
+  function removeFilter(event, filter) {
+    const url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/removeFilter/" + event.currentTarget.getAttribute("filter");
+
+    // Obtén el elemento del botón y pásalo como argumento a fetchData
+    const buttonElement = event.currentTarget;
+    fetchData(url, buttonElement);
+  }
 
 
   /* DESCARGAR SOURCES */
