@@ -126,7 +126,7 @@
     let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
     console.log("proceeding to call function with " + url);
     let sources = await getTree(url);
-    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1, collapseIcon: 'glyphicon glyphicon-menu-up', expandIcon: 'glyphicon glyphicon-menu-down'});
+    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1, collapseIcon: 'bi bi-chevron-down', expandIcon: 'bi bi-chevron-right'});
 
     //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
     $('#tree').on('nodeSelected', async function (event, data) {
