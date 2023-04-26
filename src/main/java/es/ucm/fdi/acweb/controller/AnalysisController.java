@@ -141,7 +141,6 @@ public class AnalysisController {
 
         //Borramos si existe directorio cleanInput
         if(Files.exists(targetDir.toPath()) && targetDir.listFiles().length >= 1){
-            //FileUtils.deleteDirectory(targetDir);
             FileSystemUtils.deleteRecursively(targetDir);
         }
 

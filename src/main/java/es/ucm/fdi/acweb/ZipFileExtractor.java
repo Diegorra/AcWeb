@@ -80,7 +80,7 @@ public class ZipFileExtractor {
                 clean(file.listFiles(), filters);
             } else {
                 String fileExtension = getFileExtension(file.getName());
-                if(!filters.contains(fileExtension)){
+                if(!filters.contains(fileExtension) && !filters.contains(file.getName())){
                     Files.delete(file.toPath());
                 }
             }
