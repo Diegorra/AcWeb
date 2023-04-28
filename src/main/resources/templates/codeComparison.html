@@ -6,89 +6,101 @@
   <th:block th:replace="fragments/header :: header" />
 </head>
 <body>
-<th:block th:replace="fragments/nav :: nav"/>
-
-<div id="main" class="row m-4" th:attr="index=${index}, length=${length}">
-  <div th:if="${length > 1}" class="btn-group me-2">
-    <button id="prev" type="button" class="btn btn-sm btn-outline-secondary"> < </button>
-    <button id="next" type="button" class="btn btn-sm btn-outline-secondary"> > </button>
+  <th:block th:replace="fragments/nav :: nav"/>
+  <div class="container-fluid">
+    <div id="row" class="row" th:attr="analysisId=${analysis}">
+        <div class="col-md-1" id="file-browser-1" th:attr="sub1=${sub1}">
+          <ul class="list-unstyled">
+            <li th:each="file : ${files1}">
+              <a href="#" th:text="${file}" th:attr="name=${file}" class="file-link-1"></a>
+            </li>
+          </ul>
+        </div>
+      <div class="col-md-5">
+        <h1 class="h2 text-center" id="file-title-1">Archivo no seleccionado</h1>
+        <textarea id="code-editor-1"></textarea>
+      </div>
+      <div class="col-md-5">
+        <h1 class="h2 text-center" id="file-title-2">Archivo no seleccionado</h1>
+        <textarea id="code-editor-2"></textarea>
+      </div>
+      <div class="col-md-1" id="file-browser-2" th:attr="sub2=${sub2}">
+        <!-- Aquí va el navegador de archivos 2 -->
+        <ul class="list-unstyled">
+          <li th:each="file : ${files2}">
+            <a href="#" th:text="${file}" th:attr="name=${file}" class="file-link-2"></a>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <div class="col-md-6 col-6">
-    <h1 class="h2 text-center" th:text="${id1}"></h1>
-    <textarea id="code1" th:text="${source1}"></textarea>
-  </div>
-  <div class="col-md-6 col-6">
-    <h1 class="h2 text-center" th:text="${id2}"></h1>
-    <textarea id="code2" th:text="${source2}"></textarea>
-  </div>
-</div>
+
+  <script>
+    // Inicializar CodeMirror
+    let codem1 = CodeMirror.fromTextArea(document.getElementById("code-editor-1"), {
+      lineNumbers: true,
+      tabSize: 2,
+      mode: 'text/x-java',
+      resize: 'vertical',
+      suppressEdits: true,
+      theme: 'monokai',
+      readOnly: true
+    })
+
+    let codem2 = CodeMirror.fromTextArea(document.getElementById("code-editor-2"), {
+      lineNumbers: true,
+      tabSize: 2,
+      mode: 'text/x-java',
+      resize: 'vertical',
+      suppressEdits: true,
+      theme: 'monokai',
+      readOnly: true
+    })
 
 
-<script>
-  let it = parseInt(document.querySelector('#main').getAttribute("index"));
-  console.log(it);
-
-  let length = parseInt(document.querySelector('#main').getAttribute("length"));
-  console.log(length);
-
-  let code1 = document.querySelector('#code1');
-  let code2 = document.querySelector('#code2');
-
-  let codem1 = CodeMirror.fromTextArea(code1, {
-    lineNumbers: true,
-    tabSize: 2,
-    value: code1.value,
-    mode: 'text/x-java',
-    resize: 'vertical',
-    suppressEdits: true,
-    theme: 'monokai',
-    readOnly: true
-  })
-
-  codem1.setSize(screen.width/2, (screen.height*82)/100);
-
-  let codem2 = CodeMirror.fromTextArea(code2, {
-    lineNumbers: true,
-    value: code2.value,
-    mode: 'text/x-java',
-    suppressEdits: true,
-    resize: 'vertical',
-    theme: 'monokai',
-    readOnly: true
-  })
-
-  codem2.setSize(screen.width/2, (screen.height*82)/100);
+    codem1.setSize((screen.width*45)/100, (screen.height*82)/100);
+    codem2.setSize((screen.width*45)/100, (screen.height*82)/100);
 
 
-  document.getElementById('prev').addEventListener('click', function () {
-    let currentUrl = window.location.href;
-
-    if(it === 0){
-      it = length - 1;
-    }else{
-      it--;
+    // Función para cargar el contenido del archivo en CodeMirror
+    async function loadFileContent(analysisId, sub, file, codeEditor, fileTitleElement) {
+      try {
+        let url = "http://localhost:8080/analysis/" + `${analysisId}/getFile/${sub}/${file}`;
+        console.log(url);
+        const response = await fetch(url);
+        const content = await response.json();
+        console.log(content);
+        codeEditor.setValue(content.code1);
+        fileTitleElement.innerText = content.id;
+      } catch (error) {
+        console.error("Error al cargar el contenido del archivo:", error);
+      }
     }
 
-    let baseUrl = currentUrl.substring(0, currentUrl.length - 1);
-    window.location.href = baseUrl + it;
+    // Agregar el evento de clic para cargar el contenido del archivo en CodeMirror
+    document.querySelectorAll(".file-link-1").forEach((fileLink) => {
+      fileLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        const file = fileLink.getAttribute("name");
+        const analysisId = document.getElementById("row").getAttribute("analysisId");
+        const sub = document.getElementById("file-browser-1").getAttribute("sub1");
+        const fileTitleElement = document.getElementById("file-title-1");
+        loadFileContent(analysisId, sub, file, codem1, fileTitleElement);
+      });
+    });
 
+    document.querySelectorAll(".file-link-2").forEach((fileLink) => {
+      fileLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        const file = fileLink.getAttribute("name");
+        const analysisId = document.getElementById("row").getAttribute("analysisId");
+        const sub = document.getElementById("file-browser-2").getAttribute("sub2");
+        const fileTitleElement = document.getElementById("file-title-2");
+        loadFileContent(analysisId, sub, file, codem2, fileTitleElement);
+      });
+    });
 
-  });
-
-  document.getElementById('next').addEventListener('click', function () {
-    let currentUrl = window.location.href;
-
-    if(it === length -1 ){
-      it = 0;
-    }else{
-      it ++;
-    }
-
-    let baseUrl = currentUrl.substring(0, currentUrl.length - 1);
-    window.location.href = baseUrl + it;
-
-  });
-
-</script>
-</body>
+  </script>
+  </body>
 </html>
+

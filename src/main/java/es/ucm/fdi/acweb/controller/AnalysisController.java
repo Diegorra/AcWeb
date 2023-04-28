@@ -34,9 +34,7 @@ import java.io.*;
 import java.nio.file.*;
 
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -343,31 +341,46 @@ public class AnalysisController {
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
 
-        //Una vez tienes los dos submissions -> creas un array con ficheros que coinciden
-        ArrayList<SourceWeb.Transfer> sources1 = new ArrayList<>();
-        ArrayList<SourceWeb.Transfer> sources2 = new ArrayList<>();
-
+        ArrayList<String> sources1 = new ArrayList<>();
         for(SourceWeb sw1 : sub1.getSourceRoots()){
-            for(SourceWeb sw2 : sub2.getSourceRoots()){
-                if(sw1.getFileName().equals(sw2.getFileName())){
-                    sources1.add(sw1.toTransfer());
-                    log.info("Coinciden en : " + sw1.getFileName());
-                    sources2.add(sw2.toTransfer());
-                }
-            }
+            sources1.add(sw1.toTransfer().getFileName());
         }
-        model.addAttribute("length", sources1.size());
-        model.addAttribute("index", index);
 
-        model.addAttribute("id1", sub1.getId_authors() + ": " + sources1.get(index).getFileName());
-        model.addAttribute("source1", sources1.get(index).getCode());
+        ArrayList<String> sources2 = new ArrayList<>();
+        for(SourceWeb sw2 : sub2.getSourceRoots()){
+            sources2.add(sw2.toTransfer().getFileName());
+        }
 
-        model.addAttribute("id2", sub2.getId_authors()+ ": " + sources2.get(index).getFileName());
-        model.addAttribute("source2", sources2.get(index).getCode());
-        log.info("out of function");
+        model.addAttribute("analysis", analysisId);
+        model.addAttribute("sub1", sub1.getId_authors());
+        model.addAttribute("sub2", sub2.getId_authors());
+        model.addAttribute("files1", sources1);
+        model.addAttribute("files2", sources2);
+
         return "codeComparison";
     }
 
+
+    @GetMapping("/{analysisId}/getFile/{name}/{file}")
+    public ResponseEntity<Map<String, String>> getCodeOfFile(@PathVariable long analysisId, @PathVariable String name, @PathVariable String file, Model model, HttpSession session){
+        isAuthorised(session, analysisId);
+        SubmissionWeb sub = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
+                .setParameter("id", name)
+                .setParameter("analysisId", analysisId)
+                .getSingleResult();
+
+        SourceWeb source = entityManager.createNamedQuery("SourceWeb.byFileName", SourceWeb.class)
+                .setParameter("file", file)
+                .setParameter("id", sub.getId())
+                .getSingleResult();
+
+        Map<String, String> responseMap = new HashMap<>();
+        responseMap.put("id", sub.getId_authors() + ": " + source.getFileName());
+        responseMap.put("code1", source.getCode());
+
+        return ResponseEntity.ok(responseMap);
+    }
+    /*
     @GetMapping("/{analysisId}/getFile/{name}/{file}")
     public String getCodeOfFile(@PathVariable long analysisId, @PathVariable String name, @PathVariable String file, Model model, HttpSession session){
         isAuthorised(session, analysisId);
@@ -384,7 +397,7 @@ public class AnalysisController {
         model.addAttribute("id1", sub.getId_authors() + ": " + source.getFileName());
         model.addAttribute("code1", source.getCode());
         return "codeOfFile";
-    }
+    }*/
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Object> download(@PathVariable long id, HttpSession session) throws IOException {
