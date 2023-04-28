@@ -74,8 +74,20 @@
       </div>
 
       <!--<canvas class="my-4 w-100" width="926" height="390" style="display: block; width: 926px; height: 390px;">-->
-      <div class="table-responsive">
-        <table class="table table-striped table-sm" th:if="${analysis.appliedTestKey.size() != 0}">
+      <div class="container my-4 w-100" style="width: 926px; height: 390px;">
+        <ul class="nav nav-tabs" id="myTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="table-tab" data-bs-toggle="tab" href="#table" role="tab" aria-controls="table" aria-selected="true">Tabla</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="code-tab" data-bs-toggle="tab" href="#code" role="tab" aria-controls="code" aria-selected="false">Código</a>
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabsContent">
+          <div class="tab-pane fade show active" id="table" role="tabpanel" aria-labelledby="table-tab">
+            <!-- Aquí va el contenedor de la tabla -->
+            <div id="table-container" class="table-responsive">
+              <table class="table table-striped table-sm" th:if="${analysis.appliedTestKey.size() != 0}">
                 <tr>
                   <th scope="col"></th>
                   <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}" th:text="${sub.getId_authors()}"></th>
@@ -86,18 +98,25 @@
                     <th:block th:each="i : ${sub.getData()}">
                       <th:block th:each="j : ${i.getResult()}">
                         <td class="small-cell" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'">
-                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getInternalId()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getInternalId()} + '/0'}" th:title="${sub.getId_authors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()} + ' tienen similitud ' + ${j}"></a>
+                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getId_authors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()}}" th:title="${sub.getId_authors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()} + ' tienen similitud ' + ${j}"></a>
                         </td>
                       </th:block>
                     </th:block>
                   </tr>
                 </th:block>
-        </table>
+              </table>
+              <div th:unless="${analysis.appliedTestKey.size() != 0}">
+                <p>No result of test available</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+            <!-- Aquí van los contenedores de CodeMirror -->
+            <h1 class="h2 text-center" id="file-title">Archivo no seleccionado</h1>
+            <textarea id="code-editor" hidden></textarea>
+          </div>
+        </div>
       </div>
-      <div th:unless="${analysis.appliedTestKey.size() != 0}">
-        <p>No result of test available</p>
-      </div>
-      <!--</canvas>-->
 
     </main>
   </div>
@@ -132,16 +151,43 @@
     //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
     $('#tree').on('nodeSelected', async function (event, data) {
       console.log(data.nodeId + " was selected");
-      window.location = "http://localhost:8080/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getFile" + data.href;
+      console.log(data.nodeId + " was selected");
+      let url = "http://localhost:8080/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getFile" + data.href;
+      //window.location = url;
+
+      try {
+        const response = await fetch(url);
+        const content = await response.json();
+        console.log(content);
+        const codeTab = new bootstrap.Tab(document.getElementById("code-tab"));
+        codeTab.show();
+        codem1.setValue(content.code1);
+        document.getElementById("file-title").innerText = content.id;
+      } catch (error) {
+        console.error("Error al cargar el contenido del archivo:", error);
+      }
+
       console.log("Node was selected, exit function");
 
     });
     console.log("Out of function");
   }
 
+  let codem1 = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+    lineNumbers: true,
+    tabSize: 2,
+    mode: 'text/x-java',
+    resize: 'vertical',
+    suppressEdits: true,
+    theme: 'monokai',
+    readOnly: true
+  });
+
+  codem1.setSize(document.getElementById("code-tab").width, (screen.height*70)/100);
+
   printTree();
 
-  /* ELIMINAR FILTRO */
+/* ELIMINAR FILTRO */
    function fetchData(url, buttonElement) {
     fetch(url)
             .then(response => {
@@ -207,36 +253,6 @@
   });
 
 </script>
-<script>
-  const actualBtn = document.getElementById('my-file');
 
-  const fileChosen = document.getElementById('file-chosen');
-
-  actualBtn.addEventListener('change', async function () {
-    let source = this.files[0];
-    fileChosen.textContent = source.name;
-
-    console.log("change detected")
-
-    //enviamos el zip al controller
-    let form = document.forms['myForm'];
-
-    let formData = new FormData();
-    formData.append("file", source); //parece ser que el multipart que se recibe es null
-
-    let params = {
-      method: "POST",
-      headers: {},
-      body: formData
-    };
-
-    params.headers["X-CSRF-TOKEN"] = config.csrf.value;
-    console.log("sending", form.action, params);
-
-    await fetch(form.action, params)
-            .then(response => response.json())
-            .then(data => console.log(data))
-  });
-</script>
 </body>
 </html>
