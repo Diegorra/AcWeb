@@ -68,7 +68,7 @@ public class AnalysisController {
      */
     @ResponseStatus(
             value=HttpStatus.FORBIDDEN,
-            reason="No eres administrador, y éste no es tu perfil")  // 403
+            reason="Debes estar registrado en el sistema para acceder")  // 403
     public static class NoEsTuPerfilException extends RuntimeException {}
 
     // check permissions
@@ -329,14 +329,14 @@ public class AnalysisController {
     /**
      * Gets two codes of sources for comparison
      */
-    @GetMapping("/{analysisId}/get/{id1}/{id2}/{index}")
-    public String getCodeComparison(@PathVariable long analysisId, @PathVariable int id1, @PathVariable int id2, @PathVariable int index, Model model, HttpSession session){
+    @GetMapping("/{analysisId}/get/{id1}/{id2}")
+    public String getCodeComparison(@PathVariable long analysisId, @PathVariable String id1, @PathVariable String id2, Model model, HttpSession session){
         isAuthorised(session, analysisId);
-        SubmissionWeb sub1 = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
+        SubmissionWeb sub1 = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
                 .setParameter("id", id1)
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
-        SubmissionWeb sub2 = entityManager.createNamedQuery("SubmissionWeb.byInternalId", SubmissionWeb.class)
+        SubmissionWeb sub2 = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
                 .setParameter("id", id2)
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
@@ -352,8 +352,8 @@ public class AnalysisController {
         }
 
         model.addAttribute("analysis", analysisId);
-        model.addAttribute("sub1", sub1.getId_authors());
-        model.addAttribute("sub2", sub2.getId_authors());
+        model.addAttribute("sub1", id1);
+        model.addAttribute("sub2", id2);
         model.addAttribute("files1", sources1);
         model.addAttribute("files2", sources2);
 
