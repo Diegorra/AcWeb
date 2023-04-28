@@ -26,3 +26,19 @@
 
     */
 }
+
+/* GESTIONAR LINKS EN CODECOMPARISON */
+.file-link-1, .file-link-2 {
+    display: block;
+    text-decoration: none;
+    color: #007bff;
+    padding: 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.file-link-1, .file-link-2:hover,
+.file-link-1, .file-link-2:focus {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
