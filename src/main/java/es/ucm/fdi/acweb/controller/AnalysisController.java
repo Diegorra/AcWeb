@@ -375,7 +375,7 @@ public class AnalysisController {
                 .getSingleResult();
 
         Map<String, String> responseMap = new HashMap<>();
-        responseMap.put("id", sub.getId_authors() + ": " + source.getFileName());
+        responseMap.put("id", sub.getIdAuthors() + ": " + source.getFileName());
         responseMap.put("code1", source.getCode());
 
         return ResponseEntity.ok(responseMap);

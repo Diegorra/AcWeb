@@ -90,15 +90,15 @@
               <table class="table table-striped table-sm" th:if="${analysis.appliedTestKey.size() != 0}">
                 <tr>
                   <th scope="col"></th>
-                  <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}" th:text="${sub.getId_authors()}"></th>
+                  <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}" th:text="${sub.getIdAuthors()}"></th>
                 </tr>
                 <th:block th:each="sub : ${analysis.getSubs()}">
                   <tr>
-                    <th class="small-cell" scope="row" th:text="${sub.getId_authors()}"></th>
+                    <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
                     <th:block th:each="i : ${sub.getData()}">
                       <th:block th:each="j : ${i.getResult()}">
                         <td class="small-cell" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'">
-                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getId_authors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()}}" th:title="${sub.getId_authors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getId_authors()} + ' tienen similitud ' + ${j}"></a>
+                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}" th:title="${sub.getIdAuthors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()} + ' tienen similitud ' + ${j}"></a>
                         </td>
                       </th:block>
                     </th:block>

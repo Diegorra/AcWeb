@@ -1,17 +1,12 @@
 package es.ucm.fdi.acweb.model;
 
-import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.Submission;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static es.ucm.fdi.acweb.model.SourceWeb.sourceFromAc;
-import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
 
 @Entity
 @NoArgsConstructor
@@ -22,7 +17,7 @@ import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
                         + "WHERE s.internalId = : id AND s.analysis.id  = : analysisId"),
         @NamedQuery(name="SubmissionWeb.byIdAuthors",
                 query="SELECT s FROM SubmissionWeb s "
-                        + "WHERE s.id_authors = : id AND s.analysis.id  = : analysisId"),
+                        + "WHERE s.idAuthors = : id AND s.analysis.id  = : analysisId"),
 })
 public class SubmissionWeb {
     @Id
@@ -34,7 +29,7 @@ public class SubmissionWeb {
     private AnalysisWeb analysis;
 
     private String originalPath;
-    private String id_authors;
+    private String idAuthors;
     private Integer internalId;
 
     private String hash;
@@ -85,7 +80,7 @@ public class SubmissionWeb {
     public void fromAc(Submission submission, AnalysisWeb analysis, List<SourceWeb> sourceRoots){
         this.setAnalysis(analysis);
         this.setOriginalPath(submission.getOriginalPath());
-        this.setId_authors(submission.getId());
+        this.setIdAuthors(submission.getId());
         this.setInternalId(submission.getInternalId());
         this.setHash(submission.getHash());
         this.setSourceRoots(sourceRoots);
