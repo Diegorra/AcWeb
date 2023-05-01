@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @NoArgsConstructor
@@ -33,6 +34,7 @@ public class SubmissionWeb {
     private Integer internalId;
 
     private String hash;
+    private String anotations;
 
     private boolean hashUpToDate;
 
@@ -90,6 +92,12 @@ public class SubmissionWeb {
     public void persistData(String key, Submission sub){
         this.data.add(testResultFromAc(key, sub.getData(key), this));
     }*/
+
+    public void setNames(Map<String, String> naming){
+        if(naming.containsKey(idAuthors)){
+            this.setAnotations(naming.get(idAuthors));
+        }
+    }
 
     @Override
     public int hashCode() {

@@ -4,9 +4,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -16,16 +14,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class ZipFileExtractor {
 
-    public void extractZip(MultipartFile zipFile, Path outputDirectory) throws IOException {
+    public void extractZip(MultipartFile zipFile, Path outputDirectory, Map<String, String> naming) throws IOException {
         File tempFile = File.createTempFile("zip", null);
         zipFile.transferTo(tempFile);
-        extractZip(tempFile, outputDirectory);
+        extractZip(tempFile, outputDirectory, naming);
         tempFile.delete();
     }
 
-    private void extractZip(File zipFile, Path outputDirectory) throws IOException {
+    private void extractZip(File zipFile, Path outputDirectory, Map<String, String> naming) throws IOException {
         // Crea un patrón de expresión regular para capturar un código numérico de 7 dígitos
-        Pattern pattern = Pattern.compile("(\\d{7})");
+        Pattern pattern = Pattern.compile("^([\\p{L} ]+)_(\\d{7})_.*");
         try (ZipFile zf = new ZipFile(zipFile, Charset.forName("CP437"))) {
             Enumeration<? extends ZipEntry> entries = zf.entries();
             while (entries.hasMoreElements()) {
@@ -42,7 +40,9 @@ public class ZipFileExtractor {
                         Matcher matcher = pattern.matcher(zipEntry.getName());
                         String subfolderName;
                         if (matcher.find()) {
-                            subfolderName = matcher.group(1);
+                            String name = matcher.group(1);
+                            subfolderName = matcher.group(2);
+                            naming.put(subfolderName, name);
                         } else { //si no encuentra el código del Campus
                             subfolderName = zipEntry.getName().replaceAll("\\.zip$", "");
                         }
@@ -51,7 +51,7 @@ public class ZipFileExtractor {
                         Path subfolder = outputDirectory.resolve(subfolderName);
                         Files.createDirectories(subfolder);
                         // Extrae el contenido del archivo ZIP en la carpeta creada
-                        extractZip(filePath.toFile(), subfolder);
+                        extractZip(filePath.toFile(), subfolder, naming);
                         // Elimina el archivo ZIP
                         Files.delete(filePath);
                     }
