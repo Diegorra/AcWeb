@@ -36,15 +36,16 @@ public class ZipFileExtractor {
                     Files.copy(zf.getInputStream(zipEntry), filePath);
 
                     if (isZipFile(filePath)) {
-                        // Extrae el código numérico de 7 dígitos del nombre del archivo
+                        // Extrae el código numérico de 7 dígitos del nombre del archivo y el nombre del autor
                         Matcher matcher = pattern.matcher(zipEntry.getName());
                         String subfolderName;
                         if (matcher.find()) {
                             String name = matcher.group(1);
                             subfolderName = matcher.group(2);
                             naming.put(subfolderName, name);
-                        } else { //si no encuentra el código del Campus
+                        } else { //si no encuentra el patrón
                             subfolderName = zipEntry.getName().replaceAll("\\.zip$", "");
+                            naming.put(subfolderName, subfolderName);
                         }
 
                         // Crea una carpeta con el nombre subfolderName
