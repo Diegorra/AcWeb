@@ -98,7 +98,7 @@
                     <th:block th:each="i : ${sub.getData()}">
                       <th:block th:each="j : ${i.getResult()}">
                         <td class="small-cell" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'">
-                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}" th:title="${sub.getIdAuthors()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()} + ' tienen similitud ' + ${j}"></a>
+                          <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" th:text="${#numbers.formatDecimal(j, 1, 2)}" th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}" th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' tienen similitud ' + ${j}"></a>
                         </td>
                       </th:block>
                     </th:block>

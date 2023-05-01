@@ -60,6 +60,10 @@ public class AnalysisController {
 
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
 
+    //gestiona nombres de submission clave -> id cv, valor nombre integrantes
+    Map<String,  String> naming = new HashMap<>();
+
+
     /**
      * Exception to use when denying access to unauthorized users.
      *
@@ -126,6 +130,12 @@ public class AnalysisController {
         ArrayList<SubmissionWeb> submissionWebs = map.getSubmissions(ac, analysis);
 
         analysis.fromAc(entityManager.find(User.class, requester.getId()), ssw, submissionWebs, analysis.getName());
+
+        //Una vez se contruye el análisis
+        for(SubmissionWeb submissionWeb : analysis.getSubs()){
+            submissionWeb.setNames(naming);
+        }
+
         entityManager.persist(analysis);
         log.info("Analysis {} persisted", analysis.getName());
 
@@ -215,10 +225,13 @@ public class AnalysisController {
         /** Build structure of SourceSet **/
         // Unzip folder with sources
         File targetDir = localData.getFolder("analysis/" + id + "/rawInput");
-        zfx.extractZip(rootFile, targetDir.toPath());
+        naming.clear();
+        zfx.extractZip(rootFile, targetDir.toPath(), naming);
 
         AnalysisWeb analysis = load(targetDir, id, session);
         analysis.setName(rootFile.getOriginalFilename().replaceAll("\\.zip$", ""));
+
+
         entityManager.persist(analysis);
 
         model.addAttribute("analysis", analysis);
@@ -375,7 +388,7 @@ public class AnalysisController {
                 .getSingleResult();
 
         Map<String, String> responseMap = new HashMap<>();
-        responseMap.put("id", sub.getIdAuthors() + ": " + source.getFileName());
+        responseMap.put("id", sub.getAnotations() + ": " + source.getFileName());
         responseMap.put("code1", source.getCode());
 
         return ResponseEntity.ok(responseMap);
