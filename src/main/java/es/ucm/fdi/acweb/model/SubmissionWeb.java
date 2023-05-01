@@ -96,6 +96,8 @@ public class SubmissionWeb {
     public void setNames(Map<String, String> naming){
         if(naming.containsKey(idAuthors)){
             this.setAnotations(naming.get(idAuthors));
+        }else{
+            this.setAnotations(this.idAuthors); //evitamos tener contextos con valores a null
         }
     }
 
