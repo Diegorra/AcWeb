@@ -40,7 +40,7 @@ public class SubmissionWeb {
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name="sub_id")
-    private List<SourceWeb> sourceRoots = new ArrayList<>();
+    private List<SourceWeb> sources = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "sub_id")
@@ -85,7 +85,7 @@ public class SubmissionWeb {
         this.setIdAuthors(submission.getId());
         this.setInternalId(submission.getInternalId());
         this.setHash(submission.getHash());
-        this.setSourceRoots(sourceRoots);
+        this.setSources(sourceRoots);
     }
 
     /*
