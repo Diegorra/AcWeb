@@ -374,12 +374,12 @@ public class AnalysisController {
                 .getSingleResult();
 
         ArrayList<String> sources1 = new ArrayList<>();
-        for(SourceWeb sw1 : sub1.getSourceRoots()){
+        for(SourceWeb sw1 : sub1.getSources()){
             sources1.add(sw1.toTransfer().getFileName());
         }
 
         ArrayList<String> sources2 = new ArrayList<>();
-        for(SourceWeb sw2 : sub2.getSourceRoots()){
+        for(SourceWeb sw2 : sub2.getSources()){
             sources2.add(sw2.toTransfer().getFileName());
         }
 
