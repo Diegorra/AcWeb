@@ -19,12 +19,15 @@
     width:1px;
 }
 
-.cols{
-    /*transform:rotate(-75deg);
-    border: 0 !important;
-    padding: 0px !important;
-
-    */
+div.rotated {
+    -webkit-transform: rotate(-70deg);
+    -moz-transform: rotate(-70deg);
+    height: 1em;
+    width: 1em;
+    padding-top: 4em;
+    left: -2.5em;
+    position: relative;
+    margin-top: 5em;
 }
 
 /* GESTIONAR LINKS EN CODECOMPARISON */
@@ -42,3 +45,4 @@
     background-color: #f8f9fa;
     border-color: #dee2e6;
 }
+

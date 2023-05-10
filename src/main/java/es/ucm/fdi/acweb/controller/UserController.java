@@ -28,7 +28,10 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     private static final Logger log = LogManager.getLogger(UserController.class);
-    /* Función para retornar la página principal del usuario con todos su análisis previos y botón para nuevo análisis */
+
+    /**
+     * Returns main page of user
+     */
     @GetMapping
     @Transactional
     public String startingPage(Model model, HttpSession session){
@@ -66,7 +69,7 @@ public class UserController {
 
     @PostMapping("/register")
     @Transactional
-    public String register(Model model,@ModelAttribute("newUser") User newUser){
+    public String register(Model model, @ModelAttribute("newUser") User newUser){
         String userName = newUser.getUsername();
 
         Long exists =((Number) entityManager

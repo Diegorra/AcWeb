@@ -1,5 +1,6 @@
 package es.ucm.fdi.acweb.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import es.ucm.fdi.acweb.LocalData;
 import es.ucm.fdi.acweb.Mapper;
 import es.ucm.fdi.acweb.ZipFileExtractor;
@@ -35,6 +36,7 @@ import java.nio.file.*;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -51,31 +53,29 @@ public class AnalysisController {
     @Autowired
     private LocalData localData;
 
-    //private Analysis ac; // de forma temporal hasta tener persistencia
-
     @Autowired
     private Mapper map;
 
-    ZipFileExtractor zfx = new ZipFileExtractor();
+    ZipFileExtractor zfx = new ZipFileExtractor(); // Servico para gestioar zip y unzip
 
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
 
-    //gestiona nombres de submission clave -> id cv, valor nombre integrantes
-    Map<String,  String> naming = new HashMap<>();
+
+    Map<String, String> naming = new HashMap<>(); // Gestiona nombres de submission clave -> id_cv, valor nombre integrantes de submission
 
 
     /**
      * Exception to use when denying access to unauthorized users.
-     *
-     * In general, admins are always authorized, but users cannot modify
-     * each other's profiles.
+
      */
     @ResponseStatus(
             value=HttpStatus.FORBIDDEN,
             reason="Debes estar registrado en el sistema para acceder")  // 403
     public static class NoEsTuPerfilException extends RuntimeException {}
 
-    // check permissions
+    /**
+     * Checks if user trying to access endpoint is authorised to do it
+     */
     private void isAuthorised(HttpSession session, Long id){
         User requester = (User)session.getAttribute("u");
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
@@ -84,6 +84,9 @@ public class AnalysisController {
         }
     }
 
+    /**
+     * Removes filtered sources
+     */
     @Transactional
     public void cleanAnalysis(long id){
         AnalysisWeb analysisWeb = entityManager.find(AnalysisWeb.class, id);
@@ -103,17 +106,20 @@ public class AnalysisController {
 
     }
 
+    /**
+     * Loads analysis given dir with sources
+     */
     @Transactional
-    public AnalysisWeb load(File targetDir, long id, HttpSession session) throws IOException {
+    public AnalysisWeb load(File sourcesDir, long id, HttpSession session) throws IOException {
         // Look deeper until more than 1 child
-        while (targetDir.listFiles().length == 1) {
-            targetDir = targetDir.listFiles()[0];
+        while (sourcesDir.listFiles().length == 1) {
+            sourcesDir = sourcesDir.listFiles()[0];
         }
 
         // Load Sources
         FileTreeModel ftm = new FileTreeModel();
-        for (File root : targetDir.listFiles()) {
-            log.info("Adding root for {}: {}", targetDir, root.getAbsolutePath());
+        for (File root : sourcesDir.listFiles()) {
+            log.info("Adding root for {}: {}", sourcesDir, root.getAbsolutePath());
             ftm.addSource(root);
         }
 
@@ -142,12 +148,148 @@ public class AnalysisController {
         return analysis;
     }
 
+
+    // ------------------------------------------------------- ANALYSIS MANAGEMENT -------------------------------------------------------
+
+    /**
+     * Creates a new analysis
+     *
+     */
+    @GetMapping
+    @Transactional
+    public String newAnalysis(Model model, HttpSession session) {
+        AnalysisWeb analysis = new AnalysisWeb();
+        User requester = (User)session.getAttribute("u");
+        analysis.setOwner(entityManager.find(User.class, requester.getId()));
+        analysis.setName("new_analysis");
+        entityManager.persist(analysis);
+        entityManager.flush();
+
+        model.addAttribute("analysis", analysis);
+        return "mainView";
+    }
+
+    /**
+     * Loads an existing analysis
+     */
+    @GetMapping("/{id}")
+    @Transactional
+    public String getAnalysis(@PathVariable long id, Model model, HttpSession session){
+        isAuthorised(session, id);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        model.addAttribute("analysis", analysis);
+        return "mainView";
+    }
+
+    @DeleteMapping("/{id}/remove")
+    @Transactional
+    @ResponseBody
+    public String removeAnalysis(@PathVariable long id, HttpSession session){
+        isAuthorised(session, id);
+        AnalysisWeb analysisWeb = entityManager.find(AnalysisWeb.class, id);
+        entityManager.remove(analysisWeb);
+        return "{}";
+    }
+
+    /**
+     * Download files linked to analysis
+     */
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Object> download(@PathVariable long id, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        // Obtener la ruta del directorio
+        String directoryName = localData.getFolder("analysis/" + id).toString();
+        Path directoryPath = Paths.get(directoryName);
+
+        // Configurar los encabezados de la respuesta HTTP
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + directoryName + ".zip\"");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        // Crear un archivo ZIP temporal
+        Path tempZipFile = Files.createTempFile("tempZip", ".zip");
+        try (
+                // Crear un OutputStream para escribir en el archivo ZIP temporal
+                OutputStream outputStream = Files.newOutputStream(tempZipFile);
+                // Crear un ZipOutputStream para comprimir los archivos en el ZIP
+                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
+        ) {
+            // Recorrer el contenido del directorio y comprimirlo en el archivo ZIP
+            Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    // Crear una entrada ZIP para el archivo actual
+                    ZipEntry zipEntry = new ZipEntry(directoryPath.relativize(file).toString());
+                    // Agregar la entrada ZIP al ZipOutputStream
+                    zipOutputStream.putNextEntry(zipEntry);
+                    // Copiar el contenido del archivo actual al ZipOutputStream
+                    Files.copy(file, zipOutputStream);
+                    // Cerrar la entrada ZIP
+                    zipOutputStream.closeEntry();
+                    // Continuar con el siguiente archivo
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+
+        // Leer el contenido del archivo ZIP temporal en un array de bytes
+        byte[] zipData = Files.readAllBytes(tempZipFile);
+        // Eliminar el archivo ZIP temporal del disco
+        Files.delete(tempZipFile);
+
+        // Devolver la respuesta HTTP con los encabezados y el contenido del archivo ZIP
+        return ResponseEntity.status(HttpStatus.OK)
+                .headers(headers)
+                .body(zipData);
+    }
+
+    // ------------------------------------------------------- FILTER MANAGEMENT -------------------------------------------------------
+
+    /**
+     * Filter sources given a String with the filter to apply
+     */
+    @PostMapping("/{id}/newFilter")
+    @Transactional
+    public String addFilter(@PathVariable long id, @RequestParam("filters") String newFilter, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        //Obtenemos filtros previos y añadimos el nuevo
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        List<String> filters = analysis.getFilters();
+        filters.add(newFilter);
+
+        cleanAnalysis(id);
+        loadFilter(id, filters, session);
+
+        model.addAttribute("analysis", analysis);
+        return "redirect:/analysis/" + analysis.getId();
+    }
+
+    /**
+     * Removes given filter from the filter list
+     */
+    @DeleteMapping("/{id}/removeFilter")
+    @Transactional
+    @ResponseBody
+    public ResponseEntity<String> removeFilter(@PathVariable long id, @RequestBody JsonNode data, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
+        filters.remove(data.get("filter").toString());
+
+        cleanAnalysis(id);
+        loadFilter(id, filters, session);
+
+        return ResponseEntity.ok("{}");
+    }
+
+    /**
+     * Given list of filters, applies filter to sources
+     */
     @Transactional
     public void loadFilter(long id, List<String> filters, HttpSession session) throws IOException {
         File srcDir = localData.getFolder("analysis/" + id + "/rawInput");
         File targetDir = localData.getFolder("analysis/" + id + "/filterInput");
 
-        //Borramos si existe directorio cleanInput
+        //Si targetDir existe borramos para poder volver a aplicar filtros
         if(Files.exists(targetDir.toPath()) && targetDir.listFiles().length >= 1){
             FileSystemUtils.deleteRecursively(targetDir);
         }
@@ -177,49 +319,14 @@ public class AnalysisController {
         entityManager.persist(analysis);
     }
 
-    /**
-     * Filter sources given a String with the extension
-     * **/
-    @PostMapping("/{id}/newFilter")
-    @Transactional
-    public String addFilter(@PathVariable long id, @RequestParam("filters") String newFilter, Model model, HttpSession session) throws IOException {
-        isAuthorised(session, id);
-        //Obtenemos filtros previos y añadimos el nuevo
-        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        List<String> filters = analysis.getFilters();
-        filters.add(newFilter);
-
-        cleanAnalysis(id);
-        loadFilter(id, filters, session);
-
-        model.addAttribute("analysis", analysis);
-        return "redirect:/analysis/" + analysis.getId();
-
-
-    }
-
-    @GetMapping("/{id}/removeFilter/{filter}")
-    @Transactional
-    @ResponseBody
-    public ResponseEntity<String> removeFilter(@PathVariable long id, @PathVariable String filter, Model model, HttpSession session) throws IOException {
-        isAuthorised(session, id);
-        List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
-        filters.remove(filter);
-
-        cleanAnalysis(id);
-        loadFilter(id, filters, session);
-
-        return ResponseEntity.ok("{}");
-    }
+    // ------------------------------------------------------- SOURCES MANAGEMENT -------------------------------------------------------
 
     /**
      * Receives a zip, unzips it, and creates a source-set that is ready for
      * analysis
      */
-    //  @ResponseBody
-    @PostMapping("/{id}/sources")
+    @PostMapping("/{id}/loadSources")
     @Transactional
-    //http://localhost:8080/sources
     public String loadSources(@PathVariable long id, @RequestParam("file") MultipartFile rootFile, Model model, HttpSession session) throws IOException {
         isAuthorised(session, id);
         /** Build structure of SourceSet **/
@@ -238,94 +345,6 @@ public class AnalysisController {
         return "redirect:/analysis/" + analysis.getId();
         //return "Everything ok";
     }
-
-    @GetMapping("/{id}/{testKey}")
-    @Transactional
-    public String runTest(@PathVariable long id, @PathVariable String testKey, Model model, HttpSession session) throws IOException {
-        isAuthorised(session, id);
-        /** Load analysis from BD, convert it to ac and run test **/
-        // Load analysis from BD, cast it to ac
-        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-
-        if(!analysis.getAppliedTestKey().contains(testKey)){
-            // Vemos si hay filtros aplicado para correr el test sobre los mismo
-            File targetDir = localData.getFolder("analysis/" + id + "/filterInput");
-            if(!Files.exists(targetDir.toPath()) || targetDir.listFiles().length < 1){
-                targetDir = localData.getFolder("analysis/" + id + "/rawInput");
-            }
-            Analysis ac = analysis.analysisToAc(targetDir);
-
-            // Prepare tokenization
-            Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
-            Test test = new NCDTest(new ZipFormat());
-            /*switch (testKey){
-                default:
-                    test = new NCDTest(new ZipFormat());
-
-            }*/
-
-
-            if (test instanceof TokenizingTest) {
-                ((TokenizingTest) test).setTokenizer(ac.chooseTokenizer());
-            }
-
-            // Create and run Test
-            ac.prepareTest(test);
-            ac.applyTest(test);
-
-            /**  Persistence **/
-            ArrayList<String> keys = new ArrayList<>();
-            keys.add(testKey);
-            map.persistData(analysis, ac, keys);
-        }
-
-
-         /** Enviar al modelo **/
-         ArrayList<List<Float>> matrix = new ArrayList<>();
-         for(SubmissionWeb sb : analysis.getSubs()){
-            for(TestResultWeb rs : sb.getData()){
-                matrix.add(rs.getResult());
-            }
-         }
-
-
-        model.addAttribute("analysis", analysis);
-        model.addAttribute("result", matrix);
-        return "mainView";
-
-    }
-
-    /**
-     * Creates a new analysis from a button on main view
-     *
-     */
-    @GetMapping
-    @Transactional
-    public String newAnalysis(Model model, HttpSession session) {
-        AnalysisWeb analysis = new AnalysisWeb();
-        User requester = (User)session.getAttribute("u");
-        analysis.setOwner(entityManager.find(User.class, requester.getId()));
-        analysis.setName("new_analysis");
-        entityManager.persist(analysis);
-        entityManager.flush();
-
-        model.addAttribute("analysis", analysis);
-        return "mainView";
-    }
-
-    /**
-     * Loads an existing analysis
-     */
-    @GetMapping("/{id}")
-    @Transactional
-    public String loadAnalysis(@PathVariable long id, Model model, HttpSession session){
-        isAuthorised(session, id);
-        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        model.addAttribute("analysis", analysis);
-        return "mainView";
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Get all sources of analysis to display tree view
@@ -373,7 +392,9 @@ public class AnalysisController {
         return "codeComparison";
     }
 
-
+    /**
+     * Gets two codes of sources for comparison
+     */
     @GetMapping("/{analysisId}/getFile/{name}/{file}")
     public ResponseEntity<Map<String, String>> getCodeOfFile(@PathVariable long analysisId, @PathVariable String name, @PathVariable String file, Model model, HttpSession session){
         isAuthorised(session, analysisId);
@@ -393,72 +414,101 @@ public class AnalysisController {
 
         return ResponseEntity.ok(responseMap);
     }
-    /*
-    @GetMapping("/{analysisId}/getFile/{name}/{file}")
-    public String getCodeOfFile(@PathVariable long analysisId, @PathVariable String name, @PathVariable String file, Model model, HttpSession session){
-        isAuthorised(session, analysisId);
-        SubmissionWeb sub = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
-                .setParameter("id", name)
-                .setParameter("analysisId", analysisId)
-                .getSingleResult();
 
-        SourceWeb source = entityManager.createNamedQuery("SourceWeb.byFileName", SourceWeb.class)
-                .setParameter("file", file)
-                .setParameter("id", sub.getId())
-                .getSingleResult();
+    // ------------------------------------------------------- TEST MANAGEMENT -------------------------------------------------------
 
-        model.addAttribute("id1", sub.getId_authors() + ": " + source.getFileName());
-        model.addAttribute("code1", source.getCode());
-        return "codeOfFile";
-    }*/
-
-    @GetMapping("/download/{id}")
-    public ResponseEntity<Object> download(@PathVariable long id, HttpSession session) throws IOException {
+    /**
+     * Applies specified test to current analysis
+     */
+    @GetMapping("/{id}/{testKey}")
+    @Transactional
+    public String runTest(@PathVariable long id, @PathVariable String testKey, Model model, HttpSession session) throws IOException {
         isAuthorised(session, id);
-        // Obtener la ruta del directorio
-        String directoryName = localData.getFolder("analysis/" + id).toString();
-        Path directoryPath = Paths.get(directoryName);
+        /** Load analysis from BD, convert it to ac and run test **/
+        // Load analysis from BD, cast it to ac
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
 
-        // Configurar los encabezados de la respuesta HTTP
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + directoryName + ".zip\"");
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        if(!analysis.getAppliedTestKey().contains(testKey)){
+            // Vemos si hay filtros aplicado para correr el test sobre los mismo
+            File targetDir = localData.getFolder("analysis/" + id + "/filterInput");
+            if(!Files.exists(targetDir.toPath()) || targetDir.listFiles().length < 1){
+                targetDir = localData.getFolder("analysis/" + id + "/rawInput");
+            }
+            Analysis ac = analysis.analysisToAc(targetDir);
 
-        // Crear un archivo ZIP temporal
-        Path tempZipFile = Files.createTempFile("tempZip", ".zip");
-        try (
-                // Crear un OutputStream para escribir en el archivo ZIP temporal
-                OutputStream outputStream = Files.newOutputStream(tempZipFile);
-                // Crear un ZipOutputStream para comprimir los archivos en el ZIP
-                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
-        ) {
-            // Recorrer el contenido del directorio y comprimirlo en el archivo ZIP
-            Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    // Crear una entrada ZIP para el archivo actual
-                    ZipEntry zipEntry = new ZipEntry(directoryPath.relativize(file).toString());
-                    // Agregar la entrada ZIP al ZipOutputStream
-                    zipOutputStream.putNextEntry(zipEntry);
-                    // Copiar el contenido del archivo actual al ZipOutputStream
-                    Files.copy(file, zipOutputStream);
-                    // Cerrar la entrada ZIP
-                    zipOutputStream.closeEntry();
-                    // Continuar con el siguiente archivo
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+            // Prepare tokenization
+            Analysis.setTokenizerFactory(new AntlrTokenizerFactory());
+            Test test = new NCDTest(new ZipFormat());
+            /*switch (testKey){
+                default:
+                    test = new NCDTest(new ZipFormat());
+
+            }*/
+
+
+            if (test instanceof TokenizingTest) {
+                ((TokenizingTest) test).setTokenizer(ac.chooseTokenizer());
+            }
+
+            // Create and run Test
+            ac.prepareTest(test);
+            ac.applyTest(test);
+
+            /**  Persistence **/
+            ArrayList<String> keys = new ArrayList<>();
+            keys.add(testKey);
+            map.persistData(analysis, ac, keys);
         }
 
-        // Leer el contenido del archivo ZIP temporal en un array de bytes
-        byte[] zipData = Files.readAllBytes(tempZipFile);
-        // Eliminar el archivo ZIP temporal del disco
-        Files.delete(tempZipFile);
 
-        // Devolver la respuesta HTTP con los encabezados y el contenido del archivo ZIP
-        return ResponseEntity.status(HttpStatus.OK)
-                .headers(headers)
-                .body(zipData);
+        /** Enviar al modelo **/
+        ArrayList<List<Float>> matrix = new ArrayList<>();
+        for(SubmissionWeb sb : analysis.getSubs()){
+            for(TestResultWeb rs : sb.getData()){
+                matrix.add(rs.getResult());
+            }
+        }
+
+        model.addAttribute("analysis", analysis);
+        model.addAttribute("result", matrix);
+        return "mainView";
+
+    }
+
+    /**
+     * Loads main histogram from testResult
+     */
+    @GetMapping("/{id}/histogram")
+    @ResponseBody
+    public List<AnalysisWeb.DataPoint> getHistogram(@PathVariable long id, HttpSession session) {
+        isAuthorised(session, id);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        return analysis.toPoints();
+    }
+
+    @GetMapping("/{analysisId}/histogramOf/{sourceId}")
+    @ResponseBody
+    public List<Float> getHistogramOfSource(@PathVariable long analysisId,  @PathVariable String sourceId, HttpSession session){
+        isAuthorised(session, analysisId);
+        SubmissionWeb sub = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
+                .setParameter("id", sourceId)
+                .setParameter("analysisId", analysisId)
+                .getSingleResult();
+        return sub.getData().get(0).getResult();
+    }
+
+    @GetMapping("/{id}/getAllHistograms")
+    @ResponseBody
+    public List<List<Float>> getHistogramOfSource(@PathVariable long id, HttpSession session){
+        isAuthorised(session, id);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        ArrayList<List<Float>> matrix = new ArrayList<>();
+        for(SubmissionWeb sb : analysis.getSubs()){
+            for(TestResultWeb rs : sb.getData()){
+                matrix.add(rs.getResult());
+            }
+        }
+        return matrix;
     }
 }
 
