@@ -1,7 +1,6 @@
 package es.ucm.fdi.acweb.model;
 
 import es.ucm.fdi.ac.Analysis;
-import es.ucm.fdi.ac.Submission;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -57,6 +56,31 @@ public class AnalysisWeb {
         this.setSubs(subs);
 
     }
+
+    // lista de puntos, cada uno con sub1, sub2, y distancia
+    public static class DataPoint {
+        public final String a;
+        public final String b;
+        public final float d;
+
+        public DataPoint(String a, String b, float d) {
+            this.a = a;
+            this.b = b;
+            this.d = d;
+        }
+    }
+
+    public List<DataPoint> toPoints() {
+        ArrayList<DataPoint> r = new ArrayList<>();
+        for (int i = 0; i < subs.size(); i++) {
+            for (int j = 0; j < i; j++) {
+                r.add(new DataPoint(subs.get(i).getIdAuthors(), subs.get(j).getIdAuthors(),
+                        subs.get(i).getData().get(0).getResult().get(j)));
+            }
+        }
+        return r;
+    }
+
 
     @Override
     public int hashCode() {
