@@ -2,17 +2,21 @@ package es.ucm.fdi.acweb;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.springframework.web.multipart.MultipartFile;
 
-public class ZipFileExtractor {
+public class ZipFileManager {
 
     public void extractZip(MultipartFile zipFile, Path outputDirectory, Map<String, String> naming) throws IOException {
         File tempFile = File.createTempFile("zip", null);
@@ -94,6 +98,36 @@ public class ZipFileExtractor {
             return ""; // No se encontró un punto en el nombre del archivo
         }
         return filename.substring(index + 1);
+    }
+    
+    public Path compressFile(Path directoryPath) throws IOException {
+        // Crear un archivo ZIP temporal
+        Path tempZipFile = Files.createTempFile("tempZip", ".zip");
+        try (
+                // Crear un OutputStream para escribir en el archivo ZIP temporal
+                OutputStream outputStream = Files.newOutputStream(tempZipFile);
+                // Crear un ZipOutputStream para comprimir los archivos en el ZIP
+                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
+        ) {
+            // Recorrer el contenido del directorio y comprimirlo en el archivo ZIP
+            Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    // Crear una entrada ZIP para el archivo actual
+                    ZipEntry zipEntry = new ZipEntry(directoryPath.relativize(file).toString());
+                    // Agregar la entrada ZIP al ZipOutputStream
+                    zipOutputStream.putNextEntry(zipEntry);
+                    // Copiar el contenido del archivo actual al ZipOutputStream
+                    Files.copy(file, zipOutputStream);
+                    // Cerrar la entrada ZIP
+                    zipOutputStream.closeEntry();
+                    // Continuar con el siguiente archivo
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        
+        return tempZipFile;
     }
 
 }

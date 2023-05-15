@@ -3,7 +3,7 @@ package es.ucm.fdi.acweb.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import es.ucm.fdi.acweb.LocalData;
 import es.ucm.fdi.acweb.Mapper;
-import es.ucm.fdi.acweb.ZipFileExtractor;
+import es.ucm.fdi.acweb.ZipFileManager;
 import es.ucm.fdi.acweb.model.*;
 import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.SourceSet;
@@ -34,11 +34,8 @@ import javax.transaction.Transactional;
 import java.io.*;
 import java.nio.file.*;
 
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static org.apache.commons.io.FileUtils.copyDirectory;
 
@@ -56,7 +53,7 @@ public class AnalysisController {
     @Autowired
     private Mapper map;
 
-    ZipFileExtractor zfx = new ZipFileExtractor(); // Servico para gestioar zip y unzip
+    ZipFileManager zfx = new ZipFileManager(); // Servico para gestioar zip y unzip
 
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
 
@@ -207,30 +204,7 @@ public class AnalysisController {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
         // Crear un archivo ZIP temporal
-        Path tempZipFile = Files.createTempFile("tempZip", ".zip");
-        try (
-                // Crear un OutputStream para escribir en el archivo ZIP temporal
-                OutputStream outputStream = Files.newOutputStream(tempZipFile);
-                // Crear un ZipOutputStream para comprimir los archivos en el ZIP
-                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
-        ) {
-            // Recorrer el contenido del directorio y comprimirlo en el archivo ZIP
-            Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    // Crear una entrada ZIP para el archivo actual
-                    ZipEntry zipEntry = new ZipEntry(directoryPath.relativize(file).toString());
-                    // Agregar la entrada ZIP al ZipOutputStream
-                    zipOutputStream.putNextEntry(zipEntry);
-                    // Copiar el contenido del archivo actual al ZipOutputStream
-                    Files.copy(file, zipOutputStream);
-                    // Cerrar la entrada ZIP
-                    zipOutputStream.closeEntry();
-                    // Continuar con el siguiente archivo
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        }
+        Path tempZipFile = zfx.compressFile(directoryPath);
 
         // Leer el contenido del archivo ZIP temporal en un array de bytes
         byte[] zipData = Files.readAllBytes(tempZipFile);
