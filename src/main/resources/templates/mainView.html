@@ -247,7 +247,8 @@
         label: "Distances",
         width: 900,
         height: 700,
-        color: "steelblue"
+        color: "steelblue",
+        yFormat: "d"
       })
 
       document.getElementById("main-hist").appendChild(chart);
@@ -280,7 +281,8 @@
         label: "Distances",
         width: 900,
         height: 700,
-        color: "steelblue"
+        color: "steelblue",
+        yFormat: "d"
       })
       let histogramContainer = document.getElementById("sub-hist");
 
@@ -310,7 +312,8 @@
           label: "Distances",
           width: 450,
           height: 100,
-          color: "steelblue"
+          color: "steelblue",
+          yFormat: "d"
         })
         console.log("adding child");
         histogramContainer.appendChild(hist);

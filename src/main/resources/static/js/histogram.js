@@ -25,7 +25,7 @@ function Histogram(data, {
     insetLeft = 0.5, // inset left edge of bar
     insetRight = 0.5, // inset right edge of bar
     xType = type, // type of x-scale
-    xDomain = domain, // [xmin, xmax]
+    xDomain = [0, 1], // [xmin, xmax]
     xRange = [marginLeft, width - marginRight], // [left, right]
     xLabel = label, // a label for the x-axis
     xFormat = format, // a format specifier string for the x-axis
@@ -53,12 +53,15 @@ function Histogram(data, {
     if (xDomain === undefined) xDomain = [bins[0].x0, bins[bins.length - 1].x1];
     if (yDomain === undefined) yDomain = [0, d3.max(Y)];
 
+    // Compute numTicks in y axis based on Sturges rule
+    var numTicks = Math.ceil(1 + Math.log2(d3.max(Y)));  // Regla de Sturges
+
     // Construct scales and axes.
     const xScale = xType(xDomain, xRange);
     const yScale = yType(yDomain, yRange);
     const xAxis = d3.axisBottom(xScale).ticks(width / 80, xFormat).tickSizeOuter(0);
-    const yAxis = d3.axisLeft(yScale).ticks(height / 40, yFormat);
-    yFormat = yScale.tickFormat(100, yFormat);
+    const yAxis = d3.axisLeft(yScale).ticks(numTicks, yFormat);
+    yFormat = yScale.tickFormat(numTicks, yFormat);
 
     const svg = d3.create("svg")
         .attr("width", width)
