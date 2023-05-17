@@ -33,7 +33,7 @@ function Histogram(data, {
     yDomain, // [ymin, ymax]
     yRange = [height - marginBottom, marginTop], // [bottom, top]
     yLabel = "↑ Frequency", // a label for the y-axis
-    yFormat = normalize ? "%" : undefined, // a format specifier string for the y-axis
+    yFormat "d", // a format specifier string for the y-axis
     color = "currentColor" // bar fill color
 } = {}) {
     // Compute values.
