@@ -108,7 +108,7 @@
                               <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                                 th:text="${#numbers.formatDecimal(j, 1, 2)}"
                                 th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}"
-                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' tienen similitud ' + ${j}"></a>
+                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' tienen distancia ' + ${j}"></a>
                             </td>
                           </th:block>
                         </th:block>
@@ -124,22 +124,33 @@
           <div class="tab-pane fade" id="histogram" role="tabpanel" aria-labelledby="histogram-tab">
             <div th:if="${analysis.appliedTestKey.size() != 0}">
               <br>
-              <h1 class="h2">
-                Histograma principal
-              </h1>
-              <div id="main-hist"></div>
+              <!--Histograma general-->
+              <div id="row" class="row">
+                <div class="col-md-8">
+                  <h1 class="h2">
+                    Histograma principal
+                  </h1>
+                  <div id="main-hist"></div>
+                </div>
+                <div class="col-md-4" id="main-list" th:attr="analysisId=${analysis.getId()}"></div>
+              </div>
 
-              <!--Primera Opción-->
+              <!--Histograma de un alumno-->
               <br><br>
               <label for="sourceId">Selecciona el histograma que deseas consultar dando su identificador: </label>
               <input type="text" class="form-control" name="sourceId" id="sourceId"/>
               <button class="btn btn-primary my-2" type="submit" value="getHist" id="getHist" onclick="getHistogram()">Submit</button>
               <br>
-              <h1 class="h2" id="histName" style="visibility: hidden">Archivo no seleccionado</h1>
-              <div id="sub-hist"></div>
+              <div id="row2" class="row">
+                <div class="col-md-8">
+                  <h1 class="h2" id="histName" style="visibility: hidden">Archivo no seleccionado</h1>
+                  <div id="sub-hist"></div>
+                </div>
+                <div class="col-md-4" id="sub-list" th:attr="analysisId=${analysis.getId()}"></div>
+              </div>
               <br>
 
-              <!--Segunda Opción-->
+              <!--Todos los histogramas-->
               <div class="row">
                 <div class="col-2 text-center">
                   <div th:each="sub : ${analysis.getSubs()}" style="height: 100px">
@@ -189,7 +200,7 @@
 
   async function printTree(){
     //En un primer paso pintamos el árbol al obtener los sources
-    let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getSources";
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getSources`;
     console.log("proceeding to call function with " + url);
     let sources = await getTree(url);
     $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1, collapseIcon: 'bi bi-chevron-down', expandIcon: 'bi bi-chevron-right'});
@@ -197,8 +208,8 @@
     //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
     $('#tree').on('nodeSelected', async function (event, data) {
       console.log(data.nodeId + " was selected");
-      console.log(data.nodeId + " was selected");
-      let url = "http://localhost:8080/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getFile" + data.href;
+
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getFile${data.href}`;
 
       try {
         const response = await fetch(url);
@@ -234,20 +245,21 @@
 
   /* HISTOGRAM */
   document.addEventListener("DOMContentLoaded", async function () {
-    let url = "/analysis/"   + document.getElementById("tree").getAttribute("analysis") + "/histogram";
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/histogram`;
+
     try {
       const response = await fetch(url);
       const data = await response.json();
       console.log(data);
-      const convertedData = convertData(data);
-      console.log(convertedData);
 
-      chart = Histogram(convertedData, {
+      chart = Histogram(data, {
         value: d => d.value,
         label: "Distances",
         width: 900,
         height: 700,
-        color: "steelblue"
+        color: "steelblue",
+        responsive: true,
+        listElement: "main-list"
       })
 
       document.getElementById("main-hist").appendChild(chart);
@@ -261,26 +273,26 @@
     let subId = document.getElementById("sourceId").value;
     console.log(subId);
 
-    let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/histogramOf/" + subId;
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/histogramOf/${subId}`;
     console.log(url);
 
     try {
       const response = await fetch(url);
       const data = await response.json();
       console.log(data);
-      //const convertedData = convertData(data);
-      //console.log(convertedData);
 
       //pinto nombre del submissión que se compara
       document.getElementById("histName").style.visibility = "visible";
       document.getElementById("histName").innerText = "Histograma de: " + subId;
 
       chart = Histogram(data, {
-        value: d => d,
+        value: d => d.value,
         label: "Distances",
         width: 900,
         height: 700,
-        color: "steelblue"
+        color: "steelblue",
+        responsive: true,
+        listElement: "sub-list"
       })
       let histogramContainer = document.getElementById("sub-hist");
 
@@ -296,7 +308,7 @@
   }
 
   async function getAllHistograms(){
-    let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/getAllHistograms";
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getAllHistograms`;
     console.log(url);
     let histogramContainer = document.getElementById("third-hist");
     try {
@@ -310,7 +322,8 @@
           label: "Distances",
           width: 450,
           height: 100,
-          color: "steelblue"
+          color: "steelblue",
+          responsive: false
         })
         console.log("adding child");
         histogramContainer.appendChild(hist);
@@ -332,13 +345,13 @@
     go(url, 'DELETE', {
       filter: event.currentTarget.getAttribute("filter")
     })
-    .then(d => {
-      console.log("Response ok", d)
-      printTree();
-      buttonElement.remove(); // Elimina el botón
+            .then(d => {
+              console.log("Response ok", d)
+              printTree();
+              buttonElement.remove(); // Elimina el botón
 
-    })
-    .catch(e => console.log("Error removing filter:", e))
+            })
+            .catch(e => console.log("Error removing filter:", e))
 
   }
 
@@ -348,7 +361,7 @@
     document.getElementById('downloadButton').addEventListener('click', async function () {
       let directoryName = document.getElementById("tree").getAttribute("analysis");
       // URL del endpoint del controlador DownloadController
-      let url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/download/";
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/download`;
 
       // Realizar una llamada fetch para descargar el archivo ZIP
       fetch(url)

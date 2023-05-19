@@ -40,8 +40,8 @@ div.rotated {
     transition: all 0.2s;
 }
 
-.file-link-1, .file-link-2:hover,
-.file-link-1, .file-link-2:focus {
+.file-link-1:hover, .file-link-2:hover,
+.file-link-1:focus, .file-link-2:focus {
     background-color: #f8f9fa;
     border-color: #dee2e6;
 }

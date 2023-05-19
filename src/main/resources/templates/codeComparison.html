@@ -9,13 +9,13 @@
   <th:block th:replace="fragments/nav :: nav"/>
   <div class="container-fluid">
     <div id="row" class="row" th:attr="analysisId=${analysis}">
-        <div class="col-md-1" id="file-browser-1" th:attr="sub1=${sub1}">
-          <ul class="list-unstyled">
-            <li th:each="file : ${files1}">
-              <a href="#" th:text="${file}" th:attr="name=${file}" class="file-link-1"></a>
-            </li>
-          </ul>
-        </div>
+      <div class="col-md-1" id="file-browser-1" th:attr="sub1=${sub1}">
+        <ul class="list-unstyled">
+          <li th:each="file : ${files1}">
+            <a href="#" th:text="${file}" th:attr="name=${file}" class="file-link-1"></a>
+          </li>
+        </ul>
+      </div>
       <div class="col-md-5">
         <h1 class="h2 text-center" id="file-title-1">Archivo no seleccionado</h1>
         <textarea id="code-editor-1"></textarea>
@@ -65,7 +65,7 @@
     // Función para cargar el contenido del archivo en CodeMirror
     async function loadFileContent(analysisId, sub, file, codeEditor, fileTitleElement) {
       try {
-        let url = "http://localhost:8080/analysis/" + `${analysisId}/getFile/${sub}/${file}`;
+        let url = `/analysis/${analysisId}/getFile/${sub}/${file}`;
         console.log(url);
         const response = await fetch(url);
         const content = await response.json();
