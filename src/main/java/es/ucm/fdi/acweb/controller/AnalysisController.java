@@ -235,20 +235,33 @@ public class AnalysisController {
         loadFilter(id, filters, session);
 
         model.addAttribute("analysis", analysis);
-        return "redirect:/analysis/" + analysis.getId();
+        return "mainView";
     }
 
     /**
      * Removes given filter from the filter list
      */
+    @GetMapping("/{id}/removeFilter/{filter}")
+    @Transactional
+    @ResponseBody
+    public ResponseEntity<String> removeFilter(@PathVariable long id, @PathVariable String filter, Model model, HttpSession session) throws IOException {
+        isAuthorised(session, id);
+        List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
+        filters.remove(filter);
+
+        cleanAnalysis(id);
+        loadFilter(id, filters, session);
+
+        return ResponseEntity.ok("{}");
+    }
+
     @DeleteMapping("/{id}/removeFilter")
     @Transactional
     @ResponseBody
-    public ResponseEntity<String> removeFilter(@PathVariable long id, @RequestBody JsonNode data, Model model, HttpSession session) throws IOException {
+    public ResponseEntity<String> removeFilter2(@PathVariable long id, @RequestBody JsonNode data, Model model, HttpSession session) throws IOException {
         isAuthorised(session, id);
         List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
-        filters.remove(data.get("filter").toString());
-
+        filters.remove(data.get("filter").asText());
         cleanAnalysis(id);
         loadFilter(id, filters, session);
 
@@ -462,13 +475,14 @@ public class AnalysisController {
 
     @GetMapping("/{analysisId}/histogramOf/{sourceId}")
     @ResponseBody
-    public List<Float> getHistogramOfSource(@PathVariable long analysisId,  @PathVariable String sourceId, HttpSession session){
+    public List<AnalysisWeb.DataPoint> getHistogramOfSource(@PathVariable long analysisId,  @PathVariable String sourceId, HttpSession session){
         isAuthorised(session, analysisId);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, analysisId);
         SubmissionWeb sub = entityManager.createNamedQuery("SubmissionWeb.byIdAuthors", SubmissionWeb.class)
                 .setParameter("id", sourceId)
                 .setParameter("analysisId", analysisId)
                 .getSingleResult();
-        return sub.getData().get(0).getResult();
+        return analysis.toPointsGivenSub(analysis.getSubs().indexOf(sub));
     }
 
     @GetMapping("/{id}/getAllHistograms")

@@ -1,7 +1,10 @@
-function convertData(data) {
-    return data.map(dp => ({ name: dp.a + " " + dp.b, value: dp.d }));
-}
+/*function convertData(data, source) {
+    return data.map(dp => ({ sub1: source, sub2: dp.b, value: dp.d }));
+}*/
 
+function getDataInRange(min, max, data) {
+    return data.filter(d => (d.value >= min && d.value < max));
+}
 
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
@@ -33,8 +36,10 @@ function Histogram(data, {
     yDomain, // [ymin, ymax]
     yRange = [height - marginBottom, marginTop], // [bottom, top]
     yLabel = "↑ Frequency", // a label for the y-axis
-    yFormat "d", // a format specifier string for the y-axis
-    color = "currentColor" // bar fill color
+    yFormat = "d", // a format specifier string for the y-axis
+    color = "currentColor", // bar fill color
+    responsive,
+    listElement
 } = {}) {
     // Compute values.
     const X = d3.map(data, x);
@@ -63,12 +68,33 @@ function Histogram(data, {
     const yAxis = d3.axisLeft(yScale).ticks(numTicks, yFormat);
     yFormat = yScale.tickFormat(numTicks, yFormat);
 
+    const onClick = function (event, d) {
+        if (responsive) {
+            var dataInRange = getDataInRange(d.x0, d.x1, data);
+            console.log(dataInRange);
+            var list = d3.select(`#${listElement}`);
+            console.log(document.getElementById(listElement).getAttribute("analysisId"));
+            list.html("");
+            list.append("h2")
+                .text(`Range: ${d.x0} - ${d.x1}`)
+            list.selectAll("a")
+                .data(dataInRange)
+                .enter()
+                .append("a")
+                .attr("href", d => `/analysis/${document.getElementById(listElement).getAttribute("analysisId")}/get/${d.sub1}/${d.sub2}`)
+                .attr("title", d => `${d.sub1} y ${d.sub2} tienen distancia: ${d.value}`)
+                .text(d => `${d.sub1} - ${d.sub2}`)
+                .append("br");
+        }
+    }
+
     const svg = d3.create("svg")
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height])
         .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
+    // Adding y axis to sgv
     svg.append("g")
         .attr("transform", `translate(${marginLeft},0)`)
         .call(yAxis)
@@ -83,18 +109,22 @@ function Histogram(data, {
             .attr("text-anchor", "start")
             .text(yLabel));
 
+    // Adding bars to svg
     svg.append("g")
-        .attr("fill", color)
+        //.attr("fill", color)
         .selectAll("rect")
         .data(bins)
         .join("rect")
-        .attr("x", d => xScale(d.x0) + insetLeft)
-        .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
-        .attr("y", (d, i) => yScale(Y[i]))
-        .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+            .attr("x", d => xScale(d.x0) + insetLeft)
+            .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
+            .attr("y", (d, i) => yScale(Y[i]))
+            .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+            .on("click", onClick)
+            .attr("fill", d => `rgb(${((1 - d.x0) * 255)}, ${255 - ((1 - d.x0) * 255)}, 0)`)
         .append("title")
         .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
 
+    // Adding x axis to svg
     svg.append("g")
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(xAxis)

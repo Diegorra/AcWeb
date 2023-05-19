@@ -44,7 +44,7 @@
 
     <script>
         function removeAnalysis(event) {
-            const url = "/analysis/" + event.currentTarget.getAttribute("id") + "/remove";
+            let url = `/analysis/${event.currentTarget.getAttribute("id")}/remove`;
 
             const buttonElement = event.currentTarget;
 

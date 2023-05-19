@@ -59,14 +59,14 @@ public class AnalysisWeb {
 
     // lista de puntos, cada uno con sub1, sub2, y distancia
     public static class DataPoint {
-        public final String a;
-        public final String b;
-        public final float d;
+        public final String sub1;
+        public final String sub2;
+        public final float value;
 
         public DataPoint(String a, String b, float d) {
-            this.a = a;
-            this.b = b;
-            this.d = d;
+            this.sub1 = a;
+            this.sub2 = b;
+            this.value = d;
         }
     }
 
@@ -78,6 +78,15 @@ public class AnalysisWeb {
                         subs.get(i).getData().get(0).getResult().get(j)));
             }
         }
+        return r;
+    }
+
+    public List<DataPoint> toPointsGivenSub(int index){
+        ArrayList<DataPoint> r = new ArrayList<>();
+        for(int i = 0; i < subs.get(index).getData().get(0).getResult().size(); i++){
+            r.add(new DataPoint(subs.get(index).getIdAuthors(), subs.get(i).getIdAuthors(), subs.get(index).getData().get(0).getResult().get(i)));
+        }
+
         return r;
     }
 
