@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Hello</title>
+<style>
+  .table {
+    width: 100%;
+    max-width: 2048px;
+    overflow: auto;
+  }
+</style>
+</head>
+<body>
+<h1 class="h2">
+  Test results: <span th:text="${analysis.getName()}" style="color: #808080;"></span>
+</h1>
+<div th:if="${analysis.appliedTestKey.size() != 0}">
+  <!-- Aquí va el contenedor de la tabla -->
+  <p>Table of distances: </p>
+  <div id="table-container" class="table-responsive">
+    <table class="table table-striped table-sm">
+      <tr>
+        <th scope="col"></th>
+        <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}">
+          <div class="rotated" th:text="${sub.getIdAuthors()}"></div>
+        </th>
+      </tr>
+      <th:block th:each="sub : ${analysis.getSubs()}">
+        <tr>
+          <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
+          <th:block th:each="i : ${sub.getData()}">
+            <th:block th:each="j : ${i.getResult()}">
+              <td class="small-cell" th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'" th:text="${#numbers.formatDecimal(j, 1, 2)}"></td>
+            </th:block>
+          </th:block>
+        </tr>
+      </th:block>
+    </table>
+  </div>
+</div>
+<p>Histogram: </p>
+<div xmlns="http://www.w3.org/2000/svg" th:utext="${histogram}"></div>
+
+<div>
+  <p>Given the figures above, based on distances, the results conclude that suspicious students are:</p>
+  <ul th:each="i : ${analysis.suspicious()}">
+    <li th:text="${i.toString()}"></li>
+  </ul>
+</div>
+<div th:unless="${analysis.appliedTestKey.size() != 0}">
+  <p>No result of test available yet</p>
+</div>
+
+</body>
+</html>
