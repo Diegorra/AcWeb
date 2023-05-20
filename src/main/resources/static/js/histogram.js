@@ -111,7 +111,7 @@ function Histogram(data, {
 
     // Adding bars to svg
     svg.append("g")
-        //.attr("fill", color)
+        .attr("fill", color)
         .selectAll("rect")
         .data(bins)
         .join("rect")
@@ -120,7 +120,7 @@ function Histogram(data, {
             .attr("y", (d, i) => yScale(Y[i]))
             .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
             .on("click", onClick)
-            .attr("fill", d => `rgb(${((1 - d.x0) * 255)}, ${255 - ((1 - d.x0) * 255)}, 0)`)
+            //.attr("fill", d => `rgb(${((1 - d.x0) * 255)}, ${255 - ((1 - d.x0) * 255)}, 0)`)
         .append("title")
         .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
 

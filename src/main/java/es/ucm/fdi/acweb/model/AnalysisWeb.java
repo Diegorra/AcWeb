@@ -68,6 +68,11 @@ public class AnalysisWeb {
             this.sub2 = b;
             this.value = d;
         }
+
+        @Override
+        public String toString() {
+            return sub1 + " - " + sub2 + " have distance " + value;
+        }
     }
 
     public List<DataPoint> toPoints() {
@@ -87,6 +92,19 @@ public class AnalysisWeb {
             r.add(new DataPoint(subs.get(index).getIdAuthors(), subs.get(i).getIdAuthors(), subs.get(index).getData().get(0).getResult().get(i)));
         }
 
+        return r;
+    }
+
+    public List<DataPoint> suspicious(){
+        ArrayList<DataPoint> r = new ArrayList<>();
+        for (int i = 0; i < subs.size(); i++) {
+            for (int j = 0; j < i; j++) {
+                float value = subs.get(i).getData().get(0).getResult().get(j);
+                if(value < 0.4){
+                    r.add(new DataPoint(subs.get(i).getAnotations(), subs.get(j).getAnotations(), value));
+                }
+            }
+        }
         return r;
     }
 

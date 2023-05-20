@@ -68,8 +68,9 @@
         </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button th:if="${analysis.appliedTestKey.size() != 0}" id="downloadReport" type="button" class="btn btn-sm btn-outline-secondary">Download Report</button>
+            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export Results</button>
+
           </div>
         </div>
       </div>
@@ -88,7 +89,6 @@
         </ul>
         <div class="tab-content" id="myTabsContent">
           <div class="tab-pane fade show active" id="table" role="tabpanel" aria-labelledby="table-tab">
-            <!--<img th:src="@{analysis/' + ${analysis.getId()} + '/histogram}" alt="histograma">-->
             <div th:if="${analysis.appliedTestKey.size() != 0}">
               <!-- Aquí va el contenedor de la tabla -->
               <div id="table-container" class="table-responsive">
@@ -120,7 +120,7 @@
             <div th:unless="${analysis.appliedTestKey.size() != 0}">
               <p>No result of test available</p>
             </div>
-            </div>
+          </div>
           <div class="tab-pane fade" id="histogram" role="tabpanel" aria-labelledby="histogram-tab">
             <div th:if="${analysis.appliedTestKey.size() != 0}">
               <br>
@@ -128,7 +128,7 @@
               <div id="row" class="row">
                 <div class="col-md-8">
                   <h1 class="h2">
-                    Histograma principal
+                    Main Histogram
                   </h1>
                   <div id="main-hist"></div>
                 </div>
@@ -137,13 +137,13 @@
 
               <!--Histograma de un alumno-->
               <br><br>
-              <label for="sourceId">Selecciona el histograma que deseas consultar dando su identificador: </label>
+              <label for="sourceId">Select the histogram you wish to consult by giving its identifier:</label>
               <input type="text" class="form-control" name="sourceId" id="sourceId"/>
               <button class="btn btn-primary my-2" type="submit" value="getHist" id="getHist" onclick="getHistogram()">Submit</button>
               <br>
               <div id="row2" class="row">
                 <div class="col-md-8">
-                  <h1 class="h2" id="histName" style="visibility: hidden">Archivo no seleccionado</h1>
+                  <h1 class="h2" id="histName" style="visibility: hidden">File not selected</h1>
                   <div id="sub-hist"></div>
                 </div>
                 <div class="col-md-4" id="sub-list" th:attr="analysisId=${analysis.getId()}"></div>
@@ -168,7 +168,7 @@
           </div>
           <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
             <!-- Aquí van los contenedores de CodeMirror -->
-            <h1 class="h2 text-center" id="file-title">Archivo no seleccionado</h1>
+            <h1 class="h2 text-center" id="file-title">No file selected</h1>
             <textarea id="code-editor" hidden></textarea>
           </div>
         </div>
@@ -362,7 +362,6 @@
       let directoryName = document.getElementById("tree").getAttribute("analysis");
       // URL del endpoint del controlador DownloadController
       let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/download`;
-
       // Realizar una llamada fetch para descargar el archivo ZIP
       fetch(url)
               .then(function (response) {
@@ -385,7 +384,21 @@
                 console.error(error);
               });
     });
+    document.getElementById('downloadReport').addEventListener('click', async function(){
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/downloadReport`;
+      console.log(url);
+      go(url, 'POST', {
+        svg: document.getElementById("main-hist").innerHTML
+      })
+              .then(function (response) {
+                window.open(response);
+              })
+              .catch(function (error) {
+                console.error(error);
+              });
+    });
   });
+
 
 </script>
 

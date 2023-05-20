@@ -14,8 +14,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+@Service
 public class ZipFileManager {
 
     public void extractZip(MultipartFile zipFile, Path outputDirectory, Map<String, String> naming) throws IOException {

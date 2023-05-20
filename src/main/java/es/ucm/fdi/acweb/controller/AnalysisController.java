@@ -3,6 +3,7 @@ package es.ucm.fdi.acweb.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import es.ucm.fdi.acweb.LocalData;
 import es.ucm.fdi.acweb.Mapper;
+import es.ucm.fdi.acweb.PdfService;
 import es.ucm.fdi.acweb.ZipFileManager;
 import es.ucm.fdi.acweb.model.*;
 import es.ucm.fdi.ac.Analysis;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.thymeleaf.context.Context;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpSession;
@@ -53,10 +55,12 @@ public class AnalysisController {
     @Autowired
     private Mapper map;
 
-    ZipFileManager zfx = new ZipFileManager(); // Servico para gestioar zip y unzip
+    @Autowired
+    private ZipFileManager zfx; // Servico para gestioar zip y unzip
 
+    @Autowired
+    private PdfService pdfService;
     private static final Logger log = LogManager.getLogger(AnalysisController.class);
-
 
     Map<String, String> naming = new HashMap<>(); // Gestiona nombres de submission clave -> id_cv, valor nombre integrantes de submission
 
@@ -241,24 +245,10 @@ public class AnalysisController {
     /**
      * Removes given filter from the filter list
      */
-    @GetMapping("/{id}/removeFilter/{filter}")
-    @Transactional
-    @ResponseBody
-    public ResponseEntity<String> removeFilter(@PathVariable long id, @PathVariable String filter, Model model, HttpSession session) throws IOException {
-        isAuthorised(session, id);
-        List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
-        filters.remove(filter);
-
-        cleanAnalysis(id);
-        loadFilter(id, filters, session);
-
-        return ResponseEntity.ok("{}");
-    }
-
     @DeleteMapping("/{id}/removeFilter")
     @Transactional
     @ResponseBody
-    public ResponseEntity<String> removeFilter2(@PathVariable long id, @RequestBody JsonNode data, Model model, HttpSession session) throws IOException {
+    public ResponseEntity<String> removeFilter(@PathVariable long id, @RequestBody JsonNode data, Model model, HttpSession session) throws IOException {
         isAuthorised(session, id);
         List<String> filters = entityManager.find(AnalysisWeb.class, id).getFilters();
         filters.remove(data.get("filter").asText());
@@ -498,5 +488,24 @@ public class AnalysisController {
         }
         return matrix;
     }
+
+    @PostMapping("/{id}/downloadReport")
+    @ResponseBody
+    public File downloadReport(@PathVariable long id, @RequestBody JsonNode data, HttpSession session) throws Exception {
+        isAuthorised(session, id);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+
+        // Definir contexto para renderizar plantilla de reporte
+        Context context = new Context();
+        context.setVariable("analysis", analysis);
+        context.setVariable("histogram", data.get("svg").asText());
+
+
+        String html = pdfService.createHtmlFromTemplate("report", context);
+        File report = new File(localData.getFolder("analysis/" + id), "report.pdf");
+        return pdfService.createPdf(html, report.getPath());
+    }
+
+
 }
 
