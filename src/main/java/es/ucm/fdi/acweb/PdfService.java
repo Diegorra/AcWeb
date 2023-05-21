@@ -23,7 +23,7 @@ public class PdfService {
         this.templateEngine = templateEngine;
     }
 
-    public File createPdf(String html, String out) throws Exception {
+    public void createPdf(String html, String out) {
 
         try (OutputStream os = new FileOutputStream(out);) {
 
@@ -37,7 +37,7 @@ public class PdfService {
         } catch (Exception e) {
             log.error("Exception while generating pdf : {}", e);
         }
-        return new File(out);
+        //return new File(out);
     }
 
     public String createHtmlFromTemplate(String templateName, Context context) {

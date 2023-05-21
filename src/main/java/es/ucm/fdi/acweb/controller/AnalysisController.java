@@ -512,7 +512,7 @@ public class AnalysisController {
 
         String html = pdfService.createHtmlFromTemplate("report", context);
         File report = new File(localData.getFolder("analysis/" + id), "report.pdf"); //crear el fichero pdf
-        File pdf =  pdfService.createPdf(html, report.getPath()); //cargar el contenido al pdf y devolver el archivo
+        pdfService.createPdf(html, report.getPath()); //cargar el contenido al pdf y devolver el archivo
 
         // Configurar los encabezados de la respuesta HTTP
         HttpHeaders headers = new HttpHeaders();
@@ -522,7 +522,7 @@ public class AnalysisController {
         // Devolver la respuesta HTTP con los encabezados y el contenido del informe
         return ResponseEntity.status(HttpStatus.OK)
                 .headers(headers)
-                .body(Files.readAllBytes(pdf.toPath())); //devolver como flujo de bytes el archivo pdf para su descarca
+                .body(Files.readAllBytes(report.toPath())); //devolver como flujo de bytes el archivo pdf para su descarca
     }
 
 
