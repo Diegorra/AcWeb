@@ -463,6 +463,9 @@ public class AnalysisController {
         return analysis.toPoints();
     }
 
+    /**
+     * Loads histogram of submission given it idAuthors from testResult
+     */
     @GetMapping("/{analysisId}/histogramOf/{sourceId}")
     @ResponseBody
     public List<AnalysisWeb.DataPoint> getHistogramOfSource(@PathVariable long analysisId,  @PathVariable String sourceId, HttpSession session){
@@ -475,6 +478,9 @@ public class AnalysisController {
         return analysis.toPointsGivenSub(analysis.getSubs().indexOf(sub));
     }
 
+    /**
+     * Loads every histogram of each submission from testResult
+     */
     @GetMapping("/{id}/getAllHistograms")
     @ResponseBody
     public List<List<Float>> getHistogramOfSource(@PathVariable long id, HttpSession session){
@@ -489,9 +495,12 @@ public class AnalysisController {
         return matrix;
     }
 
+    /**
+     * Given analysis id and JsonNode containing d3 data, downloads report.
+     */
     @PostMapping("/{id}/downloadReport")
     @ResponseBody
-    public File downloadReport(@PathVariable long id, @RequestBody JsonNode data, HttpSession session) throws Exception {
+    public ResponseEntity<byte[]> downloadReport(@PathVariable long id, @RequestBody JsonNode data, HttpSession session) throws Exception {
         isAuthorised(session, id);
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
 
@@ -502,8 +511,18 @@ public class AnalysisController {
 
 
         String html = pdfService.createHtmlFromTemplate("report", context);
-        File report = new File(localData.getFolder("analysis/" + id), "report.pdf");
-        return pdfService.createPdf(html, report.getPath());
+        File report = new File(localData.getFolder("analysis/" + id), "report.pdf"); //crear el fichero pdf
+        File pdf =  pdfService.createPdf(html, report.getPath()); //cargar el contenido al pdf y devolver el archivo
+
+        // Configurar los encabezados de la respuesta HTTP
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report.pdf");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        // Devolver la respuesta HTTP con los encabezados y el contenido del informe
+        return ResponseEntity.status(HttpStatus.OK)
+                .headers(headers)
+                .body(Files.readAllBytes(pdf.toPath())); //devolver como flujo de bytes el archivo pdf para su descarca
     }
 
 
