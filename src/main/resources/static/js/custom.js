@@ -36,7 +36,11 @@ function go(url, method, data = {}, headers = false) {
         .then(response => {
             const r = response;
             if (r.ok) {
-                return r.json().then(json => Promise.resolve(json));
+                if (r.headers.get("Content-Type") === "application/octet-stream") {
+                    return r.blob();
+                } else {
+                    return r.json();
+                }
             } else {
                 return r.text().then(text => Promise.reject({
                     url,

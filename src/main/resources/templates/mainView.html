@@ -390,8 +390,15 @@
       go(url, 'POST', {
         svg: document.getElementById("main-hist").innerHTML
       })
-              .then(function (response) {
-                window.open(response);
+              .then(function (data) {
+                // Crear un enlace temporal y simular un clic para descargar el archivo
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(data);
+                link.download = 'report.pdf';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
               })
               .catch(function (error) {
                 console.error(error);
