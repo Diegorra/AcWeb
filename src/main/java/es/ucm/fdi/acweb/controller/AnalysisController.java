@@ -150,7 +150,7 @@ public class AnalysisController {
     }
 
 
-    // ------------------------------------------------------- ANALYSIS MANAGEMENT -------------------------------------------------------
+    // ------------------------------------------------------- ANALYSIS -------------------------------------------------------
 
     /**
      * Creates a new analysis
@@ -221,7 +221,7 @@ public class AnalysisController {
                 .body(zipData);
     }
 
-    // ------------------------------------------------------- FILTER MANAGEMENT -------------------------------------------------------
+    // ------------------------------------------------------- FILTER -------------------------------------------------------
 
     /**
      * Filter sources given a String with the filter to apply
@@ -296,7 +296,7 @@ public class AnalysisController {
         entityManager.persist(analysis);
     }
 
-    // ------------------------------------------------------- SOURCES MANAGEMENT -------------------------------------------------------
+    // ------------------------------------------------------- SOURCES -------------------------------------------------------
 
     /**
      * Receives a zip, unzips it, and creates a source-set that is ready for
@@ -392,7 +392,7 @@ public class AnalysisController {
         return ResponseEntity.ok(responseMap);
     }
 
-    // ------------------------------------------------------- TEST MANAGEMENT -------------------------------------------------------
+    // ------------------------------------------------------- TEST -------------------------------------------------------
 
     /**
      * Applies specified test to current analysis
@@ -452,6 +452,8 @@ public class AnalysisController {
 
     }
 
+    // ------------------------------------------------------- VISUALIZATIONS -------------------------------------------------------
+
     /**
      * Loads main histogram from testResult
      */
@@ -483,7 +485,7 @@ public class AnalysisController {
      */
     @GetMapping("/{id}/getAllHistograms")
     @ResponseBody
-    public List<List<Float>> getHistogramOfSource(@PathVariable long id, HttpSession session){
+    public List<List<Float>> getAllHistograms(@PathVariable long id, HttpSession session){
         isAuthorised(session, id);
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
         ArrayList<List<Float>> matrix = new ArrayList<>();
@@ -511,8 +513,8 @@ public class AnalysisController {
 
 
         String html = pdfService.createHtmlFromTemplate("report", context);
-        File report = new File(localData.getFolder("analysis/" + id), "report.pdf"); //crear el fichero pdf
-        pdfService.createPdf(html, report.getPath()); //cargar el contenido al pdf y devolver el archivo
+        File report = new File(localData.getFolder("analysis/" + id), "report.pdf"); // Crear el fichero pdf
+        pdfService.createPdf(html, report.getPath()); // Cargar el contenido al pdf
 
         // Configurar los encabezados de la respuesta HTTP
         HttpHeaders headers = new HttpHeaders();
@@ -522,7 +524,7 @@ public class AnalysisController {
         // Devolver la respuesta HTTP con los encabezados y el contenido del informe
         return ResponseEntity.status(HttpStatus.OK)
                 .headers(headers)
-                .body(Files.readAllBytes(report.toPath())); //devolver como flujo de bytes el archivo pdf para su descarca
+                .body(Files.readAllBytes(report.toPath())); // Devolver como flujo de bytes el archivo pdf para su descarca
     }
 
 
