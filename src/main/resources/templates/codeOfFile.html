@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Code comparison</title>
+  <th:block th:replace="fragments/header :: header" />
+</head>
+<body>
+    <header class="header" th:replace="fragments/nav :: nav"></header>
+    <div class="row m-4">
+      <div class="col-md-8 col-8">
+        <h1 class="h2 text-center" th:text="${id1}"></h1>
+        <textarea id="code1" th:text="${code1}"></textarea>
+      </div>
+    </div>
+
+  <script>
+    let code1 = document.querySelector('#code1');
+
+    let codem1 = CodeMirror.fromTextArea(code1, {
+      lineNumbers: true,
+      tabSize: 2,
+      value: code1.value,
+      mode: 'text/x-java',
+      resize: 'vertical',
+      suppressEdits: true,
+      theme: 'monokai',
+      readOnly: true
+    })
+
+
+    codem1.setSize((screen.width*80)/100, (screen.height*85)/100);
+
+  </script>
+</body>
+</html>

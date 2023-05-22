@@ -1,17 +1,13 @@
 package es.ucm.fdi.acweb.model;
 
-import es.ucm.fdi.ac.Analysis;
 import es.ucm.fdi.ac.Submission;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static es.ucm.fdi.acweb.model.SourceWeb.sourceFromAc;
-import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
+import java.util.Map;
 
 @Entity
 @NoArgsConstructor
@@ -20,6 +16,9 @@ import static es.ucm.fdi.acweb.model.TestResultWeb.testResultFromAc;
         @NamedQuery(name="SubmissionWeb.byInternalId",
                 query="SELECT s FROM SubmissionWeb s "
                         + "WHERE s.internalId = : id AND s.analysis.id  = : analysisId"),
+        @NamedQuery(name="SubmissionWeb.byIdAuthors",
+                query="SELECT s FROM SubmissionWeb s "
+                        + "WHERE s.idAuthors = : id AND s.analysis.id  = : analysisId"),
 })
 public class SubmissionWeb {
     @Id
@@ -31,16 +30,17 @@ public class SubmissionWeb {
     private AnalysisWeb analysis;
 
     private String originalPath;
-    private String id_authors;
+    private String idAuthors;
     private Integer internalId;
 
     private String hash;
+    private String anotations;
 
     private boolean hashUpToDate;
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name="sub_id")
-    private List<SourceWeb> sourceRoots = new ArrayList<>();
+    private List<SourceWeb> sources = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "sub_id")
@@ -82,16 +82,24 @@ public class SubmissionWeb {
     public void fromAc(Submission submission, AnalysisWeb analysis, List<SourceWeb> sourceRoots){
         this.setAnalysis(analysis);
         this.setOriginalPath(submission.getOriginalPath());
-        this.setId_authors(submission.getId());
+        this.setIdAuthors(submission.getId());
         this.setInternalId(submission.getInternalId());
         this.setHash(submission.getHash());
-        this.setSourceRoots(sourceRoots);
+        this.setSources(sourceRoots);
     }
 
     /*
     public void persistData(String key, Submission sub){
         this.data.add(testResultFromAc(key, sub.getData(key), this));
     }*/
+
+    public void setNames(Map<String, String> naming){
+        if(naming.containsKey(idAuthors)){
+            this.setAnotations(naming.get(idAuthors));
+        }else{
+            this.setAnotations(this.idAuthors); //evitamos tener contextos con valores a null
+        }
+    }
 
     @Override
     public int hashCode() {

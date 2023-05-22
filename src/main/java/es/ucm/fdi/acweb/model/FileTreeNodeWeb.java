@@ -4,7 +4,9 @@ import es.ucm.fdi.ac.SourceSet;
 import es.ucm.fdi.ac.extract.FileTreeModel;
 import es.ucm.fdi.ac.extract.FileTreeNode;
 import es.ucm.fdi.acweb.LocalData;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -12,11 +14,12 @@ import javax.persistence.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 @Entity
 @NoArgsConstructor
 @Data
-public class FileTreeNodeWeb {
+public class FileTreeNodeWeb implements Transferable<FileTreeNodeWeb.Transfer>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen")
@@ -28,7 +31,7 @@ public class FileTreeNodeWeb {
     @OneToOne
     private SourceSetWeb ss;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     private FileTreeNodeWeb parent;
 
     @OneToMany(cascade=CascadeType.ALL)
@@ -67,6 +70,35 @@ public class FileTreeNodeWeb {
     @Override
     public int hashCode() {
         return Math.toIntExact(this.id);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class Transfer {
+        private String text;
+        private String href;
+
+        private boolean selectable;
+        private ArrayList<FileTreeNodeWeb.Transfer> nodes;
+    }
+
+    @Override
+    public FileTreeNodeWeb.Transfer toTransfer() {
+        ArrayList<FileTreeNodeWeb.Transfer> childrenNodes = new ArrayList<>();
+        for(FileTreeNodeWeb i : this.children){
+            if(i.getChildren().isEmpty()){
+                childrenNodes.add(new FileTreeNodeWeb.Transfer(i.path, i.path, i.getChildren().isEmpty(), null));
+            }
+            else{
+                childrenNodes.add(new FileTreeNodeWeb.Transfer(i.path, i.path, i.getChildren().isEmpty(), i.toTransfer().nodes));
+            }
+        }
+        return new FileTreeNodeWeb.Transfer(path, path, false, childrenNodes);
+    }
+
+    @Override
+    public String toString() {
+        return toTransfer().toString();
     }
 
 }

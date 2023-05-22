@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html class="h-100" xmlns:th="http://www.thymeleaf.org" >
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <th:block th:replace="fragments/header :: header" />
+</head>
+
+<body class="d-flex flex-column h-100 bg">
+
+<div class="container" style="display: flex; justify-content: center; position: fixed; left: 0; right:0; top: 10vh; bottom:0;">
+
+  <div class="card bg-light" style="border-radius: 15px; width: max(35%, 250px); height: 50vh;">
+    <article class="card-body mx-auto">
+
+      <h4 class="card-title mt-3 text-center">Create Account</h4>
+      <!--
+      <div>
+          <p>
+              <a href="" class="btn btn-block btn-google"> <i class="fab fa-google"></i>   Login via Google</a>
+          </p>
+      </div>
+      -->
+      <hr/>
+
+      <form method="post" th:action="@{/register}" th:object="${newUser}">
+        <p th:if="${error} != null" th:text = "${error}" Class = "error"> </p>
+        <div class="form-group input-group">
+          <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            </svg>
+                        </span>
+          </div>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Username" th:field="*{username}" required="required"/>
+        </div>
+
+        <p></p>
+
+        <p></p>
+
+        <div class="form-group input-group">
+          <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock" viewBox="0 0 16 16">
+                                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                            </svg>
+                        </span>
+          </div>
+          <input type="password" id="password" name="password" class="form-control" placeholder="Create password" th:field="*{passwd}" required="required"/><!---->
+        </div>
+
+        <p></p>
+
+        <button type="submit" class="btn btn-primary btn-block"> Create Account  </button>
+
+        <p style="transform: translateY(30px);" class="text-center">Have an account? <a href="/login">Log In</a></p>
+      </form>
+    </article>
+  </div>
+</div>
+
+
+</body>
+</html>

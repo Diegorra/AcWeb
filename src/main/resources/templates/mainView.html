@@ -11,36 +11,50 @@
   <div class="row">
     <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block bg-light sidebar collapse" >
       <th:block th:if="${analysis.getSubs().size() == 0}">
-        <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/sources'}">
-          <!--<input type="file" id="my-file" onchange="sendSources()" hidden/>
-          <label for="my-file" class="labelForButton">Upload File</label>
-          <span id="file-chosen">No file chosen</span>-->
-
-          <input type="file" name="file" id="file"/><br>
-          <button class="btn btn-primary my-2" type="submit" value="Upload" id="uploadbutton" onclick="sendSources()">Upload sources</button>
-
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+          <span>Upload sources</span><br>
+        </h6>
+        <form name="loadSources" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/loadSources'}">
+          <input type="file" class="form-control" name="file" id="file"/><br>
+          <button class="btn btn-primary my-2" type="submit" value="Upload" id="upload-button">Upload sources</button>
         </form>
       </th:block>
       <th:block th:unless="${analysis.getSubs().size() == 0}">
         <div class="position-sticky pt-3 sidebar-sticky">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home align-text-bottom" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                Sources subidos con éxito
-              </a>
-            </li>
-          </ul>
-
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Run test</span>
-          </h6>
-          <ul class="nav flex-column mb-2">
-            <li class="nav-item">
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Run test</span>
+              </h6>
               <a class="nav-link" th:href="@{'/analysis/' + ${analysis.getId()} + '/Zip_ncd_sim'}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text align-text-bottom" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 NCD sim
               </a>
+            </li>
+            <li class="nav-item">
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Apply filters</span>
+              </h6>
+              <form name="myForm" method="POST" enctype="multipart/form-data" th:action="@{'/analysis/'+ ${analysis.getId()} + '/newFilter'}">
+                <div class="mb-3">
+                  <input type="text" class="form-control" aria-describedby="filterHelp" name="filters" id="filters"/>
+                  <div id="filterHelp" class="form-text">Set what kind of files you want to analyze providing name of file or the extension separated by commas.</div>
+                </div>
+                <button class="btn btn-primary my-2 btn-sm" type="submit" value="Upload">Filter sources</button>
+              </form>
+            </li>
+            <li class="nav-item">
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                <span>Submissions:</span>
+              </h6>
+              <div th:if="${analysis.getFilters().size() != 0}">
+                <span>Applied filters: </span>
+                <th:block th:each="i : ${analysis.getFilters()}">
+                  <button class="btn btn-primary my-2 btn-sm" type="button" th:text="${i} + ' x'" style="border-radius: 12px;"
+                    onclick="removeFilter(event)" th:attr="filter=${i}"></button>
+                </th:block>
+              </div>
+              <div class="tree table table-striped table-sm" id="tree" th:attr="analysis=${analysis.getId()}, size=${analysis.getSubs().size()}"></div>
             </li>
           </ul>
         </div>
@@ -49,193 +63,351 @@
 
     <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2" th:text="'Result of test for ' + ${analysis.getName()}"></h1>
+        <h1 class="h2">
+          Test results: <span th:text="${analysis.getName()}" style="color: #808080;"></span>
+        </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button th:if="${analysis.appliedTestKey.size() != 0}" id="downloadReport" type="button" class="btn btn-sm btn-outline-secondary">Download Report</button>
+            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export Sources</button>
+
           </div>
         </div>
       </div>
 
-      <!--<canvas class="my-4 w-100" width="926" height="390" style="display: block; width: 926px; height: 390px;">-->
-        <table th:if="${analysis.appliedTestKey.size() != 0}">
-          <th:block th:each="i : ${result}">
-            <tr>
-              <th:block th:each="j : ${i}">
-                <td th:text="${j}" th:style="'background-color: rgb(' + ${(j*255)} + ' ' + ${(255-(j*255))} + ' 0)'"></td>
-              </th:block>
-            </tr>
-          </th:block>
-        </table>
-        <div th:unless="${analysis.appliedTestKey.size() != 0}">
-          <p>No result of test available</p>
-        </div>
-      <!--</canvas>->
+      <div class="container my-4 w-100" style="width: 926px; height: 390px;">
+        <ul class="nav nav-tabs" id="myTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="table-tab" data-bs-toggle="tab" href="#table" role="tab" aria-controls="table" aria-selected="true">Table</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="histogram-tab" data-bs-toggle="tab" href="#histogram" role="tab" aria-controls="histogram" aria-selected="false">Histogram</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="code-tab" data-bs-toggle="tab" href="#code" role="tab" aria-controls="code" aria-selected="false">Code</a>
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabsContent">
+          <div class="tab-pane fade show active" id="table" role="tabpanel" aria-labelledby="table-tab">
+            <div th:if="${analysis.appliedTestKey.size() != 0}">
+              <!-- Aquí va el contenedor de la tabla -->
+              <div id="table-container" class="table-responsive">
+                <table class="table table-striped table-sm">
+                  <tr>
+                    <th scope="col"></th>
+                    <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}">
+                      <div class="rotated" th:text="${sub.getIdAuthors()}"></div>
+                    </th>
+                    </tr>
+                    <th:block th:each="sub : ${analysis.getSubs()}">
+                      <tr>
+                        <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
+                        <th:block th:each="i : ${sub.getData()}">
+                          <th:block th:each="j : ${i.getResult()}">
+                            <td class="small-cell" th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'">
+                              <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                                th:text="${#numbers.formatDecimal(j, 1, 2)}"
+                                th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}"
+                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' have distance ' + ${j}"></a>
+                            </td>
+                          </th:block>
+                        </th:block>
+                      </tr>
+                    </th:block>
+                    </table>
+              </div>
+              </div>
+            <div th:unless="${analysis.appliedTestKey.size() != 0}">
+              <p>No result of test available</p>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="histogram" role="tabpanel" aria-labelledby="histogram-tab">
+            <div th:if="${analysis.appliedTestKey.size() != 0}">
+              <br>
+              <!--Histograma general-->
+              <div id="row" class="row">
+                <div class="col-md-8">
+                  <h1 class="h2">
+                    Main Histogram
+                  </h1>
+                  <div id="main-hist"></div>
+                </div>
+                <div class="col-md-4" id="main-list" th:attr="analysisId=${analysis.getId()}"></div>
+              </div>
 
-      <!--<h2>Section title</h2>
-      <div class="table-responsive">
-        <table class="table table-striped table-sm">
-          <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-            <th scope="col">Header</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td>1,001</td>
-            <td>random</td>
-            <td>data</td>
-            <td>placeholder</td>
-            <td>text</td>
-          </tr>
-          <tr>
-            <td>1,002</td>
-            <td>placeholder</td>
-            <td>irrelevant</td>
-            <td>visual</td>
-            <td>layout</td>
-          </tr>
-          <tr>
-            <td>1,003</td>
-            <td>data</td>
-            <td>rich</td>
-            <td>dashboard</td>
-            <td>tabular</td>
-          </tr>
-          <tr>
-            <td>1,003</td>
-            <td>information</td>
-            <td>placeholder</td>
-            <td>illustrative</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,004</td>
-            <td>text</td>
-            <td>random</td>
-            <td>layout</td>
-            <td>dashboard</td>
-          </tr>
-          <tr>
-            <td>1,005</td>
-            <td>dashboard</td>
-            <td>irrelevant</td>
-            <td>text</td>
-            <td>placeholder</td>
-          </tr>
-          <tr>
-            <td>1,006</td>
-            <td>dashboard</td>
-            <td>illustrative</td>
-            <td>rich</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,007</td>
-            <td>placeholder</td>
-            <td>tabular</td>
-            <td>information</td>
-            <td>irrelevant</td>
-          </tr>
-          <tr>
-            <td>1,008</td>
-            <td>random</td>
-            <td>data</td>
-            <td>placeholder</td>
-            <td>text</td>
-          </tr>
-          <tr>
-            <td>1,009</td>
-            <td>placeholder</td>
-            <td>irrelevant</td>
-            <td>visual</td>
-            <td>layout</td>
-          </tr>
-          <tr>
-            <td>1,010</td>
-            <td>data</td>
-            <td>rich</td>
-            <td>dashboard</td>
-            <td>tabular</td>
-          </tr>
-          <tr>
-            <td>1,011</td>
-            <td>information</td>
-            <td>placeholder</td>
-            <td>illustrative</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,012</td>
-            <td>text</td>
-            <td>placeholder</td>
-            <td>layout</td>
-            <td>dashboard</td>
-          </tr>
-          <tr>
-            <td>1,013</td>
-            <td>dashboard</td>
-            <td>irrelevant</td>
-            <td>text</td>
-            <td>visual</td>
-          </tr>
-          <tr>
-            <td>1,014</td>
-            <td>dashboard</td>
-            <td>illustrative</td>
-            <td>rich</td>
-            <td>data</td>
-          </tr>
-          <tr>
-            <td>1,015</td>
-            <td>random</td>
-            <td>tabular</td>
-            <td>information</td>
-            <td>text</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>-->
+              <!--Histograma de un alumno-->
+              <br><br>
+              <label for="sourceId">Select the histogram you wish to consult by giving its identifier:</label>
+              <input type="text" class="form-control" name="sourceId" id="sourceId"/>
+              <button class="btn btn-primary my-2" type="submit" value="getHist" id="getHist" onclick="getHistogramOfSource()">Submit</button>
+              <br>
+              <div id="row2" class="row">
+                <div class="col-md-8">
+                  <h1 class="h2" id="histName" style="visibility: hidden">File not selected</h1>
+                  <div id="sub-hist"></div>
+                </div>
+                <div class="col-md-4" id="sub-list" th:attr="analysisId=${analysis.getId()}"></div>
+              </div>
+              <br>
+
+              <!--Todos los histogramas-->
+              <div class="row">
+                <div class="col-2 text-center">
+                  <div th:each="sub : ${analysis.getSubs()}" style="height: 100px">
+                    <h1 class="h2" th:text="${sub.getIdAuthors()}"></h1>
+                  </div>
+                </div>
+                <div class="col-8">
+                  <div id="third-hist"></div>
+                </div>
+              </div>
+            </div>
+            <div th:unless="${analysis.appliedTestKey.size() != 0}">
+              <p>No result of test available to build histogram</p>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+            <!-- Aquí van los contenedores de CodeMirror -->
+            <h1 class="h2 text-center" id="file-title">No file selected</h1>
+            <textarea id="code-editor" hidden></textarea>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
-<!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
+  <!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
 
 <script>
-  function sendSources() {
-    let source = document.getElementById("file").files[0];
-    let formData = new FormData();
+  /* TREE VIEW */
+  async function getTree(url) {
+     let size = document.getElementById("tree").getAttribute("size");
 
-    formData.append("file", source);
-    let form=document.forms['myForm'];
-    fetch(form.action, {method: "POST", body: formData}).then(response => {
-      const r = response;
-      if (r.ok) {
-        return r.json().then(json => Promise.resolve(json));
-      } else {
-        return r.text().then(text => Promise.reject({
-          status: r.status,
-          text
-        }));
+     while(size == 0){
+      size = document.getElementById("tree").getAttribute("size");
+     }
+
+    try {
+      const response = await fetch(url);
+      const  data = await response.json();
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.error("Error getting tree nodes:", error);
+    }
+  }
+
+  async function printTree(){
+    //En un primer paso pintamos el árbol al obtener los sources
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getSources`;
+    console.log("proceeding to call function with " + url);
+    let sources = await getTree(url);
+    $('#tree').treeview({ data: sources, showBorder: false, color: '#0D6EFD', levels: 1, collapseIcon: 'bi bi-chevron-down', expandIcon: 'bi bi-chevron-right'});
+
+    //En un segundo paso activamos un manejador para que cuando se seleccione un hijo se vea su código
+    $('#tree').on('nodeSelected', async function (event, data) {
+      console.log(data.nodeId + " was selected");
+
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getFile${data.href}`;
+
+      try {
+        const response = await fetch(url);
+        const content = await response.json();
+        console.log(content);
+        const codeTab = new bootstrap.Tab(document.getElementById("code-tab"));
+        codeTab.show();
+        codem1.setValue(content.code1);
+        document.getElementById("file-title").innerText = content.id;
+      } catch (error) {
+        console.error("Error loading file content:", error);
       }
+
+      console.log("Node was selected, exit function");
+
     });
+    console.log("Out of function");
+  }
+
+  let codem1 = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+    lineNumbers: true,
+    tabSize: 2,
+    mode: 'text/x-java',
+    resize: 'vertical',
+    suppressEdits: true,
+    theme: 'monokai',
+    readOnly: true
+  });
+
+  codem1.setSize(document.getElementById("code-tab").width, (screen.height*70)/100);
+
+  /* FILTERS */
+  function removeFilter(event) {
+    const url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/removeFilter/";
+
+    const buttonElement = event.currentTarget;
+
+    go(url, 'DELETE', {
+      filter: event.currentTarget.getAttribute("filter")
+    })
+            .then(d => {
+              console.log("Response ok", d)
+              printTree();
+              buttonElement.remove(); // Elimina el botón
+
+            })
+            .catch(e => console.log("Error removing filter:", e))
 
   }
+
+  /* HISTOGRAM */
+  async function getHistogram() {
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/histogram`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log(data);
+
+      chart = Histogram(data, {
+        value: d => d.value,
+        label: "Distances",
+        width: 900,
+        height: 700,
+        color: "steelblue",
+        responsive: true,
+        listElement: "main-list"
+      })
+
+      document.getElementById("main-hist").appendChild(chart);
+    } catch (error) {
+      console.error("Error loading results:", error);
+    }
+  }
+
+  async function getHistogramOfSource() {
+
+    let subId = document.getElementById("sourceId").value;
+    console.log(subId);
+
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/histogramOf/${subId}`;
+    console.log(url);
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log(data);
+
+      //pinto nombre del submissión que se compara
+      document.getElementById("histName").style.visibility = "visible";
+      document.getElementById("histName").innerText = "Histograma de: " + subId;
+
+      chart = Histogram(data, {
+        value: d => d.value,
+        label: "Distances",
+        width: 900,
+        height: 700,
+        color: "steelblue",
+        responsive: true,
+        listElement: "sub-list"
+      })
+      let histogramContainer = document.getElementById("sub-hist");
+
+      if(histogramContainer.hasChildNodes()){
+        histogramContainer.removeChild(histogramContainer.firstChild);
+      }
+
+      histogramContainer.appendChild(chart);
+
+    } catch (error) {
+      console.log("Error printing submission histogram:", error);
+    }
+  }
+
+  async function getAllHistograms(){
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/getAllHistograms`;
+    console.log(url);
+    let histogramContainer = document.getElementById("third-hist");
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log(data);
+      data.forEach(function (i){
+        console.log(i);
+        let hist = Histogram(i, {
+          value: d => d,
+          label: "Distances",
+          width: 450,
+          height: 100,
+          color: "steelblue",
+          responsive: false
+        })
+        console.log("adding child");
+        histogramContainer.appendChild(hist);
+      })
+
+    } catch (error) {
+      console.log("Error printing all histogram:", error);
+    }
+  }
+
+
+  /* DOMContentLoaded */
+  document.addEventListener('DOMContentLoaded', function () {
+    printTree();
+    getHistogram();
+    getAllHistograms();
+    // Gestionar downloads
+    document.getElementById('downloadButton').addEventListener('click', async function () {
+      let directoryName = document.getElementById("tree").getAttribute("analysis");
+      // URL del endpoint del controlador DownloadController
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/download`;
+      // Realizar una llamada fetch para descargar el archivo ZIP
+      fetch(url)
+              .then(function (response) {
+                if (!response.ok) {
+                  throw new Error('Error al descargar el directorio: ' + response.statusText);
+                }
+                return response.blob();
+              })
+              .then(function (data) {
+                // Crear un enlace temporal y simular un clic para descargar el archivo
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(data);
+                link.download = directoryName + '.zip';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              })
+              .catch(function (error) {
+                console.error(error);
+              });
+    });
+    document.getElementById('downloadReport').addEventListener('click', async function(){
+      let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/downloadReport`;
+      console.log(url);
+      go(url, 'POST', {
+        svg: document.getElementById("main-hist").innerHTML
+      })
+              .then(function (data) {
+                // Crear un enlace temporal y simular un clic para descargar el archivo
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(data);
+                link.download = 'report.pdf';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              })
+              .catch(function (error) {
+                console.error(error);
+              });
+    });
+  });
+
+
 </script>
-<!--<script>
-  const actualBtn = document.getElementById('my-file');
 
-  const fileChosen = document.getElementById('file-chosen');
-
-  actualBtn.addEventListener('change', function(){
-    fileChosen.textContent = this.files[0].name
-    //sendSources();
-  })
-</script>-->
 </body>
 </html>

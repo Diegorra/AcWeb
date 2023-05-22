@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .csrf().ignoringAntMatchers("/api/**")
                 .and()
                 .authorizeRequests()
+                .antMatchers("/register").permitAll()
                 .antMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
