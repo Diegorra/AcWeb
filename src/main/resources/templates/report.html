@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Hello</title>
+  <title>Report</title>
 <style>
   .table {
     width: 100%;
@@ -16,7 +16,7 @@
 </h1>
 <div th:if="${analysis.appliedTestKey.size() != 0}">
   <!-- Aquí va el contenedor de la tabla -->
-  <p>Table of distances: </p>
+  <p> <strong>Table of distances: </strong></p>
   <div id="table-container" class="table-responsive">
     <table class="table table-striped table-sm">
       <tr>
@@ -30,7 +30,9 @@
           <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
           <th:block th:each="i : ${sub.getData()}">
             <th:block th:each="j : ${i.getResult()}">
-              <td class="small-cell" th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'" th:text="${#numbers.formatDecimal(j, 1, 2)}"></td>
+              <td class="small-cell"
+                  th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'"
+                  th:text="${#numbers.formatDecimal(j, 1, 2)}"></td>
             </th:block>
           </th:block>
         </tr>
@@ -38,7 +40,7 @@
     </table>
   </div>
 </div>
-<p>Histogram: </p>
+<p><strong>Histogram: </strong></p>
 <div xmlns="http://www.w3.org/2000/svg" th:utext="${histogram}"></div>
 
 <div>

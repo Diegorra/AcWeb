@@ -69,7 +69,7 @@
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
             <button th:if="${analysis.appliedTestKey.size() != 0}" id="downloadReport" type="button" class="btn btn-sm btn-outline-secondary">Download Report</button>
-            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export Results</button>
+            <button id="downloadButton" type="button" class="btn btn-sm btn-outline-secondary">Export Sources</button>
 
           </div>
         </div>
@@ -108,7 +108,7 @@
                               <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                                 th:text="${#numbers.formatDecimal(j, 1, 2)}"
                                 th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}"
-                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' tienen distancia ' + ${j}"></a>
+                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' have distance ' + ${j}"></a>
                             </td>
                           </th:block>
                         </th:block>
@@ -139,7 +139,7 @@
               <br><br>
               <label for="sourceId">Select the histogram you wish to consult by giving its identifier:</label>
               <input type="text" class="form-control" name="sourceId" id="sourceId"/>
-              <button class="btn btn-primary my-2" type="submit" value="getHist" id="getHist" onclick="getHistogram()">Submit</button>
+              <button class="btn btn-primary my-2" type="submit" value="getHist" id="getHist" onclick="getHistogramOfSource()">Submit</button>
               <br>
               <div id="row2" class="row">
                 <div class="col-md-8">
@@ -241,10 +241,27 @@
 
   codem1.setSize(document.getElementById("code-tab").width, (screen.height*70)/100);
 
-  printTree();
+  /* FILTERS */
+  function removeFilter(event) {
+    const url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/removeFilter/";
+
+    const buttonElement = event.currentTarget;
+
+    go(url, 'DELETE', {
+      filter: event.currentTarget.getAttribute("filter")
+    })
+            .then(d => {
+              console.log("Response ok", d)
+              printTree();
+              buttonElement.remove(); // Elimina el botón
+
+            })
+            .catch(e => console.log("Error removing filter:", e))
+
+  }
 
   /* HISTOGRAM */
-  document.addEventListener("DOMContentLoaded", async function () {
+  async function getHistogram() {
     let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/histogram`;
 
     try {
@@ -266,9 +283,9 @@
     } catch (error) {
       console.error("Error loading results:", error);
     }
-  });
+  }
 
-  async function getHistogram() {
+  async function getHistogramOfSource() {
 
     let subId = document.getElementById("sourceId").value;
     console.log(subId);
@@ -334,30 +351,13 @@
     }
   }
 
-  getAllHistograms();
 
-  /* FILTERS */
-  async function removeFilter(event) {
-    const url = "/analysis/" + document.getElementById("tree").getAttribute("analysis") + "/removeFilter/";
-
-    const buttonElement = event.currentTarget;
-
-    go(url, 'DELETE', {
-      filter: event.currentTarget.getAttribute("filter")
-    })
-            .then(d => {
-              console.log("Response ok", d)
-              printTree();
-              buttonElement.remove(); // Elimina el botón
-
-            })
-            .catch(e => console.log("Error removing filter:", e))
-
-  }
-
-  /* DOWNLOAD SOURCES */
+  /* DOMContentLoaded */
   document.addEventListener('DOMContentLoaded', function () {
-    // Asignar un evento de clic al botón con el ID "downloadButton"
+    printTree();
+    getHistogram();
+    getAllHistograms();
+    // Gestionar downloads
     document.getElementById('downloadButton').addEventListener('click', async function () {
       let directoryName = document.getElementById("tree").getAttribute("analysis");
       // URL del endpoint del controlador DownloadController

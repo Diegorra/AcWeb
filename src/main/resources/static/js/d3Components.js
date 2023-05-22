@@ -1,6 +1,3 @@
-/*function convertData(data, source) {
-    return data.map(dp => ({ sub1: source, sub2: dp.b, value: dp.d }));
-}*/
 
 function getDataInRange(min, max, data) {
     return data.filter(d => (d.value >= min && d.value < max));
@@ -81,9 +78,9 @@ function Histogram(data, {
                 .data(dataInRange)
                 .enter()
                 .append("a")
-                .attr("href", d => `/analysis/${document.getElementById(listElement).getAttribute("analysisId")}/get/${d.sub1}/${d.sub2}`)
-                .attr("title", d => `${d.sub1} y ${d.sub2} tienen distancia: ${d.value}`)
-                .text(d => `${d.sub1} - ${d.sub2}`)
+                .attr("href", d => `/analysis/${document.getElementById(listElement).getAttribute("analysisId")}/get/${d.source}/${d.target}`)
+                .attr("title", d => `${d.sub1} y ${d.sub2} have distance: ${d.value}`)
+                .text(d => `${d.source} - ${d.target}`)
                 .append("br");
         }
     }
