@@ -462,7 +462,7 @@ public class AnalysisController {
     public List<AnalysisWeb.DataPoint> getHistogram(@PathVariable long id, HttpSession session) {
         isAuthorised(session, id);
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        return analysis.toPoints();
+        return analysis.getGeneralData().links;
     }
 
     /**
@@ -495,6 +495,14 @@ public class AnalysisController {
             }
         }
         return matrix;
+    }
+
+    @GetMapping("/{id}/graph")
+    @ResponseBody
+    public AnalysisWeb.NodesLinks getGraph(@PathVariable long id, HttpSession session){
+        isAuthorised(session, id);
+        AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
+        return analysis.getGeneralData();
     }
 
     /**

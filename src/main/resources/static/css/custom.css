@@ -20,8 +20,7 @@
 }
 
 div.rotated {
-    -webkit-transform: rotate(-70deg);
-    -moz-transform: rotate(-70deg);
+    transform: rotate(-70deg);
     height: 1em;
     width: 1em;
     padding-top: 4em;

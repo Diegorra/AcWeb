@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Main page</title>
-    <th:block th:replace="fragments/header :: header" />
+  <meta charset="UTF-8">
+  <title>Main page</title>
+  <th:block th:replace="fragments/header :: header" />
 </head>
 <body>
 <th:block th:replace="fragments/nav :: nav"/>
@@ -51,7 +51,7 @@
                 <span>Applied filters: </span>
                 <th:block th:each="i : ${analysis.getFilters()}">
                   <button class="btn btn-primary my-2 btn-sm" type="button" th:text="${i} + ' x'" style="border-radius: 12px;"
-                    onclick="removeFilter(event)" th:attr="filter=${i}"></button>
+                          onclick="removeFilter(event)" th:attr="filter=${i}"></button>
                 </th:block>
               </div>
               <div class="tree table table-striped table-sm" id="tree" th:attr="analysis=${analysis.getId()}, size=${analysis.getSubs().size()}"></div>
@@ -84,6 +84,9 @@
             <a class="nav-link" id="histogram-tab" data-bs-toggle="tab" href="#histogram" role="tab" aria-controls="histogram" aria-selected="false">Histogram</a>
           </li>
           <li class="nav-item" role="presentation">
+            <a class="nav-link" id="graph-tab" data-bs-toggle="tab" href="#graph" role="tab" aria-controls="graph" aria-selected="false">Graph</a>
+          </li>
+          <li class="nav-item" role="presentation">
             <a class="nav-link" id="code-tab" data-bs-toggle="tab" href="#code" role="tab" aria-controls="code" aria-selected="false">Code</a>
           </li>
         </ul>
@@ -98,25 +101,25 @@
                     <th class="cols" scope="col" th:each="sub : ${analysis.getSubs()}">
                       <div class="rotated" th:text="${sub.getIdAuthors()}"></div>
                     </th>
-                    </tr>
-                    <th:block th:each="sub : ${analysis.getSubs()}">
-                      <tr>
-                        <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
-                        <th:block th:each="i : ${sub.getData()}">
-                          <th:block th:each="j : ${i.getResult()}">
-                            <td class="small-cell" th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'">
-                              <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
-                                th:text="${#numbers.formatDecimal(j, 1, 2)}"
-                                th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}"
-                                th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' have distance ' + ${j}"></a>
-                            </td>
-                          </th:block>
+                  </tr>
+                  <th:block th:each="sub : ${analysis.getSubs()}">
+                    <tr>
+                      <th class="small-cell" scope="row" th:text="${sub.getIdAuthors()}"></th>
+                      <th:block th:each="i : ${sub.getData()}">
+                        <th:block th:each="j : ${i.getResult()}">
+                          <td class="small-cell" th:style="'background-color: rgb(' + ${((1-j)*255)} + ' ' + ${(255-((1-j)*255))} + ' 0)'">
+                            <a class="link-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                               th:text="${#numbers.formatDecimal(j, 1, 2)}"
+                               th:href="@{'/analysis/' + ${analysis.getId()} + '/get/' + ${sub.getIdAuthors()} + '/' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getIdAuthors()}}"
+                               th:title="${sub.getAnotations()} + ' y ' + ${analysis.getSubs().get(i.getResult().indexOf(j)).getAnotations()} + ' have distance ' + ${j}"></a>
+                          </td>
                         </th:block>
-                      </tr>
-                    </th:block>
-                    </table>
+                      </th:block>
+                    </tr>
+                  </th:block>
+                </table>
               </div>
-              </div>
+            </div>
             <div th:unless="${analysis.appliedTestKey.size() != 0}">
               <p>No result of test available</p>
             </div>
@@ -166,27 +169,51 @@
               <p>No result of test available to build histogram</p>
             </div>
           </div>
-          <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
-            <!-- Aquí van los contenedores de CodeMirror -->
-            <h1 class="h2 text-center" id="file-title">No file selected</h1>
-            <textarea id="code-editor" hidden></textarea>
+          <div class="tab-pane fade" id="graph" role="tabpanel" aria-labelledby="graph-tab">
+            <div th:if="${analysis.appliedTestKey.size() != 0}">
+              <br>
+              <!--Grafico general-->
+              <div id="graph-row" class="row">
+                <div class="col-md-10">
+                  <h1 class="h2">
+                    Dependency Graph:
+                  </h1>
+                  <div id="graph-1" class="row"></div>
+                </div>
+                <div class="col-md-2" id="button-container">
+                  <h1 class="h2"><label for="customRange1" class="form-label">Filter Distances:</label></h1>
+                  <input id="customRange1" type="range" value="10" min="0" max="1" step="0.1" oninput="this.nextElementSibling.value = this.value">
+                  <output>1</output>
+                  <hr>
+                  <div id="graph-list" th:attr="analysisId=${analysis.getId()}"></div>
+                </div>
+              </div>
+              </div>
+              <div th:unless="${analysis.appliedTestKey.size() != 0}">
+                <p>No result of test available to build graph</p>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+              <!-- Aquí van los contenedores de CodeMirror -->
+              <h1 class="h2 text-center" id="file-title">No file selected</h1>
+              <textarea id="code-editor" hidden></textarea>
+            </div>
           </div>
         </div>
-      </div>
 
     </main>
   </div>
 </div>
-  <!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
+<!--<th:block th:replace="fragments/footer.html :: footer"></th:block>-->
 
 <script>
   /* TREE VIEW */
   async function getTree(url) {
-     let size = document.getElementById("tree").getAttribute("size");
+    let size = document.getElementById("tree").getAttribute("size");
 
-     while(size == 0){
+    while(size == 0){
       size = document.getElementById("tree").getAttribute("size");
-     }
+    }
 
     try {
       const response = await fetch(url);
@@ -273,7 +300,7 @@
         value: d => d.value,
         label: "Distances",
         width: 900,
-        height: 700,
+        height: 665, //700
         color: "steelblue",
         responsive: true,
         listElement: "main-list"
@@ -351,12 +378,49 @@
     }
   }
 
+  /* GRAPH */
+  async function getGraph(){
+    let url = `/analysis/${document.getElementById("tree").getAttribute("analysis")}/graph`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log(data);
+
+      chart = ForceGraph(data, {
+        nodeId: d => d.id,
+        nodeGroup: d => d.group,
+        nodeTitle: d => `${d.id}\n${d.group}`,
+        linkStrokeWidth: l => Math.sqrt(l.value),
+        width: 900,
+        height: 700,
+      })
+      let container = document.getElementById("graph-1");
+      container.appendChild(chart);
+
+      document.getElementById("customRange1").addEventListener("change", (event) => {
+        let d = document.getElementById("customRange1").value;
+        console.log(d);
+        let newData = Object.assign({}, data);
+        let chart = refactorGraph(d, newData);
+        console.log(data);
+        container.removeChild(container.firstChild);
+        container.appendChild(chart);
+      });
+
+    } catch (error) {
+      console.error("Error loading results:", error);
+    }
+  }
+
+
 
   /* DOMContentLoaded */
   document.addEventListener('DOMContentLoaded', function () {
     printTree();
     getHistogram();
     getAllHistograms();
+    getGraph();
     // Gestionar downloads
     document.getElementById('downloadButton').addEventListener('click', async function () {
       let directoryName = document.getElementById("tree").getAttribute("analysis");
