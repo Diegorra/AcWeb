@@ -112,31 +112,39 @@ public class AnalysisWeb {
     }
 
     /**
-     * given index returns number of submissions that have less than 0.4 distance with him
-     */
-    private int group(int index){
-        int sum = 0;
-        for(int i= 0; i < subs.size(); i++){
-            if(subs.get(index).getData().get(0).getResult().get(i) < 0.4) sum++;
-        }
-        return sum;
-    }
-
-    /**
-     * Returns NodesLinks structure associated with test 0
+     * Returns NodesLinks structure associated with test 0, with duplicates for Graph
      */
     public NodesLinks getGeneralData() {
         ArrayList<DataPoint> r = new ArrayList<>();
         ArrayList<Node> ids = new ArrayList<>();
         for (int i = 0; i < subs.size(); i++) {
+            int sum = 0;
+            for (int j = 0; j < subs.size(); j++) {
+                if(i==j) continue;
+                if(subs.get(i).getData().get(0).getResult().get(j) < 0.4) sum++;
+                r.add(new DataPoint(subs.get(i).getIdAuthors(), subs.get(i).getAnotations(), subs.get(j).getIdAuthors(), subs.get(j).getAnotations(),
+                        subs.get(i).getData().get(0).getResult().get(j)));
+
+            }
+            ids.add(new Node(subs.get(i).getIdAuthors(), sum));
+        }
+        return new NodesLinks(ids, r);
+    }
+
+    /**
+     * Returns DataPoints list, avoiding duplicates for histogram
+     */
+    public List<DataPoint> getDataHistogram(){
+        ArrayList<DataPoint> r = new ArrayList<>();
+        for (int i = 0; i < subs.size(); i++) {
+            int sum = 0;
             for (int j = 0; j < i; j++) {
                 r.add(new DataPoint(subs.get(i).getIdAuthors(), subs.get(i).getAnotations(), subs.get(j).getIdAuthors(), subs.get(j).getAnotations(),
                         subs.get(i).getData().get(0).getResult().get(j)));
 
             }
-            ids.add(new Node(subs.get(i).getIdAuthors(), group(i)));
         }
-        return new NodesLinks(ids, r);
+        return r;
     }
 
     /**

@@ -178,7 +178,7 @@
                   <h1 class="h2">
                     Dependency Graph:
                   </h1>
-                  <div id="graph-1" class="row"></div>
+                  <div id="graph-1" style="overflow: hidden"></div>
                 </div>
                 <div class="col-md-2" id="button-container">
                   <h1 class="h2"><label for="customRange1" class="form-label">Filter Distances:</label></h1>
@@ -327,7 +327,7 @@
 
       //pinto nombre del submissión que se compara
       document.getElementById("histName").style.visibility = "visible";
-      document.getElementById("histName").innerText = "Histograma de: " + subId;
+      document.getElementById("histName").innerText = "Histogram of: " + subId;
 
       chart = Histogram(data, {
         value: d => d.value,
@@ -390,7 +390,7 @@
       chart = ForceGraph(data, {
         nodeId: d => d.id,
         nodeGroup: d => d.group,
-        nodeTitle: d => `${d.id}\n${d.group}`,
+        nodeTitle: d => `${d.id}`,
         linkStrokeWidth: l => Math.sqrt(l.value),
         width: 900,
         height: 700,

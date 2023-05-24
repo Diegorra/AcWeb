@@ -462,7 +462,7 @@ public class AnalysisController {
     public List<AnalysisWeb.DataPoint> getHistogram(@PathVariable long id, HttpSession session) {
         isAuthorised(session, id);
         AnalysisWeb analysis = entityManager.find(AnalysisWeb.class, id);
-        return analysis.getGeneralData().links;
+        return analysis.getDataHistogram();
     }
 
     /**

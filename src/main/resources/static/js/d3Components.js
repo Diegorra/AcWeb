@@ -20,7 +20,7 @@ function refactorGraph(range, data) {
     chart = ForceGraph(data, {
         nodeId: d => d.id,
         nodeGroup: d => d.group,
-        nodeTitle: d => `${d.id}\n${d.group}`,
+        nodeTitle: d => `${d.id}`,
         linkStrokeWidth: l => Math.sqrt(l.value),
         width: 900,
         height: 700,
@@ -163,7 +163,7 @@ function Histogram(data, {
 
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
-// https://observablehq.com/@d3/force-directed-graph
+// https://observablehq.com/@d3/disjoint-force-directed-graph
 function ForceGraph({
                         nodes, // an iterable of node objects (typically [{id}, …])
                         links // an iterable of link objects (typically [{source, target}, …])
@@ -178,8 +178,8 @@ function ForceGraph({
                         nodeStrokeOpacity = 1, // node stroke opacity
                         nodeRadius = 5, // node radius, in pixels
                         nodeStrength,
-                        linkSource = ({source}) => source, // given d in links, returns a node identifier string
-                        linkTarget = ({target}) => target, // given d in links, returns a node identifier string
+                        linkSource = ({ source }) => source, // given d in links, returns a node identifier string
+                        linkTarget = ({ target }) => target, // given d in links, returns a node identifier string
                         linkStroke = "#999", // link stroke color
                         linkStrokeOpacity = 0.6, // link stroke opacity
                         linkStrokeWidth = 1.5, // given d in links, returns a stroke width in pixels
@@ -190,9 +190,7 @@ function ForceGraph({
                         height = 400, // outer height, in pixels
                         invalidation // when this promise resolves, stop the simulation
                     } = {}) {
-
-    let originalLinks = Object.assign([], links); // Save instance of links prior to change
-
+    let originalLinks = Object.assign([], links);
     // Compute values.
     const N = d3.map(nodes, nodeId).map(intern);
     const LS = d3.map(links, linkSource).map(intern);
@@ -201,11 +199,10 @@ function ForceGraph({
     const T = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
     const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
     const W = typeof linkStrokeWidth !== "function" ? null : d3.map(links, linkStrokeWidth);
-    const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
 
     // Replace the input nodes and links with mutable objects for the simulation.
-    nodes = d3.map(nodes, (_, i) => ({id: N[i]}));
-    links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i]}));
+    nodes = d3.map(nodes, (_, i) => ({ id: N[i] }));
+    links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i] }));
 
     // Compute default domains.
     if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
@@ -215,7 +212,7 @@ function ForceGraph({
 
     // Construct the forces.
     const forceNode = d3.forceManyBody();
-    const forceLink = d3.forceLink(links).id(({index: i}) => N[i]);
+    const forceLink = d3.forceLink(links).id(({ index: i }) => N[i]);
     if (nodeStrength !== undefined) forceNode.strength(nodeStrength);
     if (linkStrength !== undefined) forceLink.strength(linkStrength);
 
@@ -236,14 +233,15 @@ function ForceGraph({
             .append("a")
             .attr("href", d => `/analysis/${id}/get/${d.source}/${d.target}`)
             .attr("title", d => `${d.sub1} y ${d.sub2} have distance: ${d.value}`)
-            .text(d => `${d.target}`)
+            .text(d => `${d.source}`)
             .append("br");
     }
 
     const simulation = d3.forceSimulation(nodes)
         .force("link", forceLink)
         .force("charge", forceNode)
-        .force("center",  d3.forceCenter())
+        .force("x", d3.forceX())
+        .force("y", d3.forceY())
         .on("tick", ticked);
 
     const svg = d3.create("svg")
@@ -253,13 +251,15 @@ function ForceGraph({
         .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
     const link = svg.append("g")
-        .attr("stroke", typeof linkStroke !== "function" ? linkStroke : null)
+        .attr("stroke", linkStroke)
         .attr("stroke-opacity", linkStrokeOpacity)
         .attr("stroke-width", typeof linkStrokeWidth !== "function" ? linkStrokeWidth : null)
         .attr("stroke-linecap", linkStrokeLinecap)
         .selectAll("line")
         .data(links)
         .join("line");
+
+    if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
 
     const node = svg.append("g")
         .attr("fill", nodeFill)
@@ -273,11 +273,20 @@ function ForceGraph({
         .on("click", nodeClick)
         .call(drag(simulation));
 
-    if (W) link.attr("stroke-width", ({index: i}) => W[i]);
-    if (L) link.attr("stroke", ({index: i}) => L[i]);
-    if (G) node.attr("fill", ({index: i}) => color(G[i]));
-    if (T) node.append("title").text(({index: i}) => T[i]);
+    if (G) node.attr("fill", ({ index: i }) => color(G[i]));
+    if (T) node.append("title").text(({ index: i }) => T[i]);
+
+    // Handle invalidation.
     if (invalidation != null) invalidation.then(() => simulation.stop());
+
+    svg.call(d3.zoom()
+        .extent([[-width / 2, -height / 2], [width, height]])
+        .scaleExtent([1, 8])
+        .on("zoom", zoomed));
+
+    function zoomed({ transform }) {
+        svg.attr("transform", transform);
+    }
 
     function intern(value) {
         return value !== null && typeof value === "object" ? value.valueOf() : value;
@@ -319,5 +328,6 @@ function ForceGraph({
             .on("end", dragended);
     }
 
-    return Object.assign(svg.node(), {scales: {color}});
+    return Object.assign(svg.node(), { scales: { color } });
 }
+
