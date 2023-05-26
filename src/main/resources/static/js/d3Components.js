@@ -233,7 +233,7 @@ function ForceGraph({
             .append("a")
             .attr("href", d => `/analysis/${id}/get/${d.source}/${d.target}`)
             .attr("title", d => `${d.sub1} y ${d.sub2} have distance: ${d.value}`)
-            .text(d => `${d.source}`)
+            .text(d => `${d.target}`)
             .append("br");
     }
 
