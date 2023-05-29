@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset="UTF-8">
   <title>Main page</title>
@@ -176,7 +176,7 @@
               <div id="graph-row" class="row">
                 <div class="col-md-10">
                   <h1 class="h2">
-                    Dependency Graph:
+                    Network view:
                   </h1>
                   <div id="graph-1" style="overflow: hidden"></div>
                 </div>
@@ -188,19 +188,18 @@
                   <div id="graph-list" th:attr="analysisId=${analysis.getId()}"></div>
                 </div>
               </div>
-              </div>
-              <div th:unless="${analysis.appliedTestKey.size() != 0}">
-                <p>No result of test available to build graph</p>
-              </div>
             </div>
-            <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
-              <!-- Aquí van los contenedores de CodeMirror -->
-              <h1 class="h2 text-center" id="file-title">No file selected</h1>
-              <textarea id="code-editor" hidden></textarea>
+            <div th:unless="${analysis.appliedTestKey.size() != 0}">
+              <p>No result of test available to build graph</p>
             </div>
           </div>
+          <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+            <!-- Aquí van los contenedores de CodeMirror -->
+            <h1 class="h2 text-center" id="file-title">No file selected</h1>
+            <textarea id="code-editor" hidden></textarea>
+          </div>
         </div>
-
+      </div>
     </main>
   </div>
 </div>
@@ -360,7 +359,6 @@
       const data = await response.json();
       console.log(data);
       data.forEach(function (i){
-        console.log(i);
         let hist = Histogram(i, {
           value: d => d,
           label: "Distances",
